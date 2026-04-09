@@ -1,0 +1,135 @@
+.page {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.header {
+  margin-bottom: 1.5rem;
+  padding: 1.5rem 1.75rem;
+  border-radius: 18px;
+  background: linear-gradient(135deg, rgba(30, 64, 175, 0.1), rgba(226, 232, 240, 0.6));
+  border: 1px solid rgba(15, 23, 42, 0.15);
+}
+
+.title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.subtitle {
+  font-size: 0.9rem;
+  color: #64748b;
+  margin-top: 0.35rem;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.25rem;
+}
+
+.card {
+  background: #ffffff;
+  border: 1px solid #e6e9f0;
+  border-radius: 16px;
+  padding: 1.2rem 1.4rem;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #0f172a;
+  margin-bottom: 1rem;
+}
+
+.chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.7rem;
+  height: 140px;
+}
+
+.barItem {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.7rem;
+  color: #94a3b8;
+}
+
+.bar,
+.barAlt {
+  width: 100%;
+  border-radius: 8px 8px 4px 4px;
+  background: linear-gradient(180deg, #3b82f6, #1d4ed8);
+  min-height: 8px;
+}
+
+.barAlt {
+  background: linear-gradient(180deg, #14b8a6, #0f766e);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.listRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+  color: #475569;
+  background: #f8fafc;
+  padding: 0.6rem 0.8rem;
+  border-radius: 10px;
+}
+
+.listRow span {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.listRow small {
+  font-size: 0.7rem;
+  color: #94a3b8;
+}
+
+.metrics {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.metrics div {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: #475569;
+}
+
+.empty {
+  color: #94a3b8;
+  font-size: 0.85rem;
+}
+
+.loading {
+  text-align: center;
+  padding: 3rem 0;
+  color: #94a3b8;
+}
+
+@media (max-width: 900px) {
+  .cards {
+    grid-template-columns: 1fr;
+  }
+}

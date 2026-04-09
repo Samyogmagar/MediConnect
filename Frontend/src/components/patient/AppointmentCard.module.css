@@ -1,0 +1,183 @@
+/* ==================== COMPACT (dashboard) ==================== */
+.compactCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.compactCard:last-child {
+  border-bottom: none;
+}
+
+.compactLeft {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--color-primary-light);
+  color: var(--color-primary-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.doctorName {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.specialization {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.meta {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.metaItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+.statusBadge {
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.statusPending {
+  background: rgba(250, 204, 21, 0.2);
+  color: #a16207;
+}
+
+.statusConfirmed {
+  background: rgba(34, 197, 94, 0.2);
+  color: #15803d;
+}
+
+.statusCompleted {
+  background: rgba(59, 130, 246, 0.2);
+  color: #1d4ed8;
+}
+
+.statusCancelled {
+  background: rgba(148, 163, 184, 0.25);
+  color: var(--color-text-secondary);
+}
+
+/* ==================== ROW (table-like) ==================== */
+.rowCard {
+  display: grid;
+  grid-template-columns: 2fr 1.5fr 1.5fr 1fr 0.8fr;
+  align-items: center;
+  padding: 0.95rem 1.25rem;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  margin-bottom: 0.6rem;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.rowCard:last-child {
+  margin-bottom: 0;
+}
+
+.rowDoctor {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.rowDateTime {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.rowLocation {
+  display: flex;
+  align-items: center;
+}
+
+.rowStatus {
+  display: flex;
+  align-items: center;
+}
+
+.rowAction {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.cancelBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: none;
+  border: none;
+  color: var(--layout-danger-text);
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 8px;
+  transition: background 0.15s;
+  font-family: inherit;
+}
+
+.cancelBtn:hover {
+  background: var(--layout-danger-bg);
+}
+
+.dash {
+  color: var(--color-text-muted);
+}
+
+:global([data-theme='dark']) .statusPending {
+  background: rgba(250, 204, 21, 0.2);
+  color: #facc15;
+}
+
+:global([data-theme='dark']) .statusConfirmed {
+  background: rgba(34, 197, 94, 0.18);
+  color: #4ade80;
+}
+
+:global([data-theme='dark']) .statusCompleted {
+  background: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
+}
+
+:global([data-theme='dark']) .statusCancelled {
+  background: rgba(148, 163, 184, 0.2);
+  color: #cbd5f5;
+}
+
+@media (max-width: 768px) {
+  .rowCard {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+}

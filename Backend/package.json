@@ -1,0 +1,30 @@
+{
+  "name": "mediconnect",
+  "version": "1.0.0",
+  "description": "MediConnect - Digital Healthcare Platform for Nepal",
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "axios": "^1.11.0",
+    "bcryptjs": "^3.0.2",
+    "cloudinary": "^2.7.0",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.6",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^9.1.6",
+    "multer": "^2.0.2",
+    "resend": "^4.8.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.11"
+  }
+}

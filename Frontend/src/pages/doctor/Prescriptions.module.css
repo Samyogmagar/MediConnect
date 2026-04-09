@@ -1,0 +1,398 @@
+.page {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+  padding: 1.4rem 1.6rem;
+  border-radius: 18px;
+  background: linear-gradient(135deg, rgba(14, 165, 164, 0.12), rgba(226, 232, 240, 0.45));
+  border: 1px solid rgba(14, 116, 144, 0.18);
+}
+
+.title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.subtitle {
+  font-size: 0.9rem;
+  color: #64748b;
+  margin: 0.375rem 0 0;
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: 8px;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #64748b;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: inherit;
+}
+
+.tab:hover {
+  color: #1d4ed8;
+  border-color: #c7d2fe;
+}
+
+.activeTab {
+  color: #0f766e;
+  background: rgba(14, 165, 164, 0.12);
+  border-color: rgba(14, 165, 164, 0.22);
+}
+
+.successBanner {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #16a34a;
+  padding: 0.875rem 1.125rem;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  margin-bottom: 1.5rem;
+}
+
+.errorBanner {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  padding: 0.875rem 1.125rem;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  margin-bottom: 1.5rem;
+}
+
+.formCard {
+  background: #ffffff;
+  border: 1px solid #e6e9f0;
+  border-radius: 14px;
+  padding: 2rem;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+}
+
+.formHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #eef2f7;
+}
+
+.formHeader svg {
+  color: #2563eb;
+}
+
+.formHeader h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.helperText {
+  font-size: 0.75rem;
+  color: #64748b;
+  margin-top: 0.25rem;
+}
+
+.label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.label svg {
+  color: #64748b;
+}
+
+.input,
+.select,
+.textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 0.938rem;
+  color: #0f172a;
+  background: #f8fafc;
+  border: 1px solid #e6e9f0;
+  border-radius: 10px;
+  font-family: inherit;
+  transition: all 0.15s;
+}
+
+.input:focus,
+.select:focus,
+.textarea:focus {
+  outline: none;
+  border-color: #1d4ed8;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.12);
+}
+
+.input::placeholder,
+.textarea::placeholder {
+  color: #94a3b8;
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.submitBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 0.938rem;
+  font-weight: 600;
+  padding: 0.875rem 1.5rem;
+  background: #1d4ed8;
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: inherit;
+  margin-top: 0.5rem;
+  box-shadow: 0 10px 18px rgba(29, 78, 216, 0.25);
+}
+
+.submitBtn:hover:not(:disabled) {
+  background: #1e40af;
+  box-shadow: 0 12px 20px rgba(29, 78, 216, 0.3);
+}
+
+.submitBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .formCard {
+    padding: 1.5rem;
+  }
+}
+
+/* Prescription List */
+.listSection {
+  background: #fff;
+  border: 1px solid #e6e9f0;
+  border-radius: 14px;
+  padding: 1.5rem;
+}
+
+.loading {
+  text-align: center;
+  padding: 2rem;
+  color: #64748b;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 3rem 1.5rem;
+  color: #94a3b8;
+}
+
+.emptyState svg {
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.emptyState p {
+  margin: 0 0 1rem;
+  font-size: 1rem;
+}
+
+.createBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 20px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #fff;
+  background: #2563eb;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.medList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.medCard {
+  border: 1px solid #f1f5f9;
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  transition: box-shadow 0.15s;
+}
+
+.medCard:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.medHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+
+.medName {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0 0 2px;
+}
+
+.medPatient {
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.medStatus {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 20px;
+  text-transform: capitalize;
+}
+
+.active {
+  background: #f0fdf4;
+  color: #16a34a;
+}
+
+.completed {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.discontinued {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.medDetails {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+}
+
+.medDetails span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.85rem;
+  color: #475569;
+}
+
+.medDates {
+  display: flex;
+  gap: 16px;
+  font-size: 0.8rem;
+  color: #94a3b8;
+  margin-bottom: 6px;
+}
+
+.medInstructions {
+  font-size: 0.85rem;
+  color: #64748b;
+  margin: 4px 0 0;
+  font-style: italic;
+}
+
+.discontinueBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 8px;
+  padding: 4px 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #dc2626;
+  background: none;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.discontinueBtn:hover {
+  background: #fef2f2;
+}
+
+/* Duration row */
+.durationRow {
+  display: flex;
+  gap: 8px;
+}
+
+.durationRow .input {
+  flex: 1;
+}
+
+.durationRow .select {
+  width: 120px;
+  flex-shrink: 0;
+}
+
+/* Checkbox */
+.checkboxGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: #334155;
+}
+
+.checkboxGroup input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #2563eb;
+}

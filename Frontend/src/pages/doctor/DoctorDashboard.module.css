@@ -1,0 +1,278 @@
+.page {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.header {
+  margin-bottom: 2rem;
+  padding: 1.5rem 1.75rem;
+  border-radius: 18px;
+  background: linear-gradient(135deg, rgba(14, 165, 164, 0.14), rgba(250, 204, 21, 0.12));
+  border: 1px solid rgba(14, 116, 144, 0.18);
+}
+
+.title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.subtitle {
+  font-size: 0.9rem;
+  color: #64748b;
+  margin: 0.375rem 0 0;
+}
+
+.loading {
+  text-align: center;
+  padding: 4rem 0;
+  color: #94a3b8;
+  font-size: 0.938rem;
+}
+
+.errorBanner {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  padding: 0.875rem 1.125rem;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  margin-bottom: 1.5rem;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+.section {
+  margin-bottom: 2rem;
+}
+
+.sectionTitle {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0 0 1rem;
+}
+
+.appointmentsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.appointmentCard {
+  background: #ffffff;
+  border: 1px solid #e6e9f0;
+  border-radius: 14px;
+  padding: 1.1rem 1.35rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  transition: all 0.15s;
+}
+
+.appointmentCard:hover {
+  border-color: #dbe2eb;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+}
+
+.aptTime {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #0f766e;
+  min-width: 100px;
+}
+
+.aptDetails {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.patientName {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.aptReason {
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.aptStatus {
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.3rem 0.8rem;
+  border-radius: 999px;
+  text-transform: capitalize;
+}
+
+.aptStatus.pending {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.aptStatus.approved {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.aptStatus.completed {
+  background: #d1fae5;
+  color: #16a34a;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 3rem 0;
+  color: #94a3b8;
+  font-size: 0.875rem;
+  background: #ffffff;
+  border: 1px solid #e6e9f0;
+  border-radius: 14px;
+}
+
+.quickStatsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.25rem;
+}
+
+.quickStatCard {
+  background: #ffffff;
+  border: 1px solid #e6e9f0;
+  border-radius: 14px;
+  padding: 1.4rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  transition: all 0.15s;
+  box-shadow: 0 12px 26px rgba(15, 23, 42, 0.08);
+}
+
+.quickStatCard:hover {
+  border-color: #dbe2eb;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+}
+
+.quickStatIcon {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.quickStatContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.quickStatLabel {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #64748b;
+}
+
+.quickStatValue {
+  font-size: 1.85rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.quickStatSubtext {
+  font-size: 0.8rem;
+  color: #94a3b8;
+}
+
+.aptActions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+
+.approveBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 0.9rem;
+  background: #1d4ed8;
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.approveBtn:hover {
+  background: #1e40af;
+  transform: translateY(-1px);
+  box-shadow: 0 10px 18px rgba(29, 78, 216, 0.25);
+}
+
+.rejectBtn {
+  padding: 0.5rem 0.9rem;
+  background: #ef4444;
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.rejectBtn:hover {
+  background: #dc2626;
+  transform: translateY(-1px);
+  box-shadow: 0 10px 18px rgba(239, 68, 68, 0.25);
+}
+
+@media (max-width: 1200px) {
+  .statsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .statsGrid,
+  .quickStatsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .appointmentCard {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .aptTime {
+    min-width: auto;
+  }
+
+  .aptActions {
+    width: 100%;
+    margin-left: 0;
+    margin-top: 0.75rem;
+  }
+
+  .approveBtn,
+  .rejectBtn {
+    flex: 1;
+  }
+}

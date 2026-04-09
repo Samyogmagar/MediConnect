@@ -1,0 +1,150 @@
+.panel {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.subtitle {
+  margin: 0.35rem 0 0;
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.viewLink {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #1d4ed8;
+  text-decoration: none;
+}
+
+.fileRow {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.dropZone {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  border: 1px dashed #94a3b8;
+  border-radius: 12px;
+  background: #f8fafc;
+  cursor: pointer;
+}
+
+.dropTitle {
+  display: block;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.dropHint {
+  display: block;
+  font-size: 0.8rem;
+  color: #94a3b8;
+}
+
+.hiddenInput {
+  display: none;
+}
+
+.filePreview {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: #ecfdf3;
+  border: 1px solid #a7f3d0;
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+}
+
+.fileName {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.fileMeta {
+  margin: 0.15rem 0 0;
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.removeBtn {
+  margin-left: auto;
+  border: none;
+  background: #fee2e2;
+  color: #dc2626;
+  border-radius: 6px;
+  padding: 0.3rem 0.4rem;
+  cursor: pointer;
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.textarea {
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 0.75rem;
+  font-size: 0.85rem;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.submitBtn {
+  flex: 1;
+  background: #0f766e;
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  padding: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.clearBtn {
+  background: #ffffff;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}

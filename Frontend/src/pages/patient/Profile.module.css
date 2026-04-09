@@ -1,0 +1,405 @@
+.page {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+/* Header */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+}
+
+.title {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.subtitle {
+  font-size: 0.938rem;
+  color: var(--color-text-secondary);
+  margin: 0.375rem 0 0;
+}
+
+.editBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  background: var(--color-primary-dark);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.813rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.editBtn:hover {
+  background: var(--color-primary);
+}
+
+/* Banner */
+.banner {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  border-radius: 16px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-md);
+}
+
+.bannerAvatar {
+  .quickRow {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.75rem;
+  }
+
+  .quickCard {
+    background: linear-gradient(135deg, rgba(14, 165, 164, 0.08), rgba(226, 232, 240, 0.3));
+    border: 1px solid rgba(14, 116, 144, 0.18);
+    border-radius: 14px;
+    padding: 1rem 1.25rem;
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    transition: transform 0.15s ease, box-shadow 0.2s ease;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
+  }
+
+  .quickCard:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 14px 30px rgba(15, 23, 42, 0.1);
+  }
+
+  .quickLabel {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-text-muted);
+    font-weight: 700;
+  }
+
+  .quickValue {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+  }
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #06b6d4, #0891b2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.bannerAvatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.bannerAvatar span {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.bannerName {
+  font-size: 1.375rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.bannerEmail {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  margin: 0.25rem 0 0.625rem;
+}
+
+.badges {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.75rem;
+  background: var(--color-surface-alt);
+  color: var(--color-text-secondary);
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.badgeBlood {
+  background: var(--layout-danger-bg);
+  color: var(--layout-danger-text);
+}
+
+/* Info Grid */
+.infoGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+/* Cards */
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  padding: 1.5rem;
+  margin-bottom: 1.25rem;
+  box-shadow: var(--shadow-md);
+}
+
+.cardTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.938rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0 0 1.25rem;
+}
+
+.cardIcon {
+  display: inline-flex;
+  color: var(--color-primary);
+}
+
+.emergencyIcon {
+  color: var(--layout-danger-text);
+}
+
+.allergyIcon {
+  color: #f59e0b;
+}
+
+/* Info Items */
+.infoItem {
+  margin-bottom: 1rem;
+}
+
+.infoItem:last-child {
+  margin-bottom: 0;
+}
+
+.infoLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  margin-bottom: 0.25rem;
+  font-weight: 500;
+}
+
+.infoLabel svg {
+  color: var(--color-text-muted);
+}
+
+.infoValue {
+  font-size: 0.875rem;
+  color: var(--color-text-primary);
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.bloodValue {
+  color: var(--layout-danger-text);
+  font-weight: 700;
+}
+
+/* Emergency Grid */
+.emergencyGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+/* History Items */
+.historyItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-left: 3px solid var(--color-border);
+  margin-bottom: 0.75rem;
+  border-radius: 0 8px 8px 0;
+  background: var(--color-surface-alt);
+}
+
+.historyItem:last-child {
+  margin-bottom: 0;
+}
+
+.historyItem strong {
+  font-size: 0.875rem;
+  color: var(--color-text-primary);
+}
+
+.historyItem p {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  margin: 0.25rem 0 0;
+}
+
+.historyStatus {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+.statusGreen {
+  background: rgba(16, 185, 129, 0.12);
+  color: #16a34a;
+}
+
+.statusBlue {
+  background: rgba(37, 99, 235, 0.16);
+  color: var(--color-primary-dark);
+}
+
+.statusDefault {
+  background: var(--color-surface-alt);
+  color: var(--color-text-secondary);
+}
+
+/* Allergy Items */
+.allergyItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: var(--layout-danger-bg);
+  border-radius: 10px;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--layout-danger-text);
+  font-weight: 500;
+}
+
+.allergyItem:last-child {
+  margin-bottom: 0;
+}
+
+.allergyDot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--layout-danger-text);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.688rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+/* Medication Items */
+.medItem {
+  padding: 0.875rem 1rem;
+  border-left: 3px solid var(--color-primary);
+  margin-bottom: 0.75rem;
+  border-radius: 0 8px 8px 0;
+  background: var(--color-surface-alt);
+}
+
+.medItem:last-child {
+  margin-bottom: 0;
+}
+
+.medItem strong {
+  font-size: 0.875rem;
+  color: var(--color-text-primary);
+}
+
+.medItem p {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  margin: 0.25rem 0 0;
+}
+
+/* Privacy Notice */
+.privacyNotice {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.privacyNotice svg {
+  color: var(--color-success);
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+.privacyNotice strong {
+  font-size: 0.875rem;
+  color: var(--color-success);
+  display: block;
+}
+
+.privacyNotice p {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  margin: 0.25rem 0 0;
+  line-height: 1.5;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .infoGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .emergencyGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .banner {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .badges {
+    justify-content: center;
+  }
+}
+
+  
+    .quickRow {
+      grid-template-columns: 1fr;
+    }

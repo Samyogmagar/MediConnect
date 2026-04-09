@@ -1,0 +1,258 @@
+.tableWrap {
+  background: #ffffff;
+  border: 1px solid #f1f5f9;
+  border-radius: 12px;
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.table thead tr {
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.table th {
+  padding: 0.875rem 1.25rem;
+  text-align: left;
+  font-weight: 600;
+  color: #475569;
+  font-size: 0.813rem;
+  white-space: nowrap;
+}
+
+.table tbody tr {
+  border-bottom: 1px solid #f8fafc;
+  transition: background 0.1s;
+}
+
+.table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.table tbody tr:hover {
+  background: #fafbfc;
+}
+
+.table td {
+  padding: 1rem 1.25rem;
+  vertical-align: middle;
+}
+
+.patientCell,
+.doctorCell {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.patientCell > div,
+.doctorCell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.avatarSmall {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #f1f5f9;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.name {
+  font-weight: 600;
+  color: #0f172a;
+  font-size: 0.875rem;
+}
+
+.subtext {
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+.testName {
+  font-weight: 500;
+  color: #334155;
+}
+
+.dateCell {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  color: #64748b;
+  font-size: 0.875rem;
+}
+
+/* Priority badges */
+.priorityNormal {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #64748b;
+  padding: 0.25rem 0.625rem;
+  background: #f1f5f9;
+  border-radius: 999px;
+}
+
+.priorityUrgent {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #dc2626;
+  padding: 0.25rem 0.625rem;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 999px;
+}
+
+.priorityEmergency {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #ffffff;
+  padding: 0.25rem 0.625rem;
+  background: #dc2626;
+  border-radius: 999px;
+}
+
+/* Status badges */
+.statusPending {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #ea580c;
+  padding: 0.25rem 0.75rem;
+  background: #fff7ed;
+  border-radius: 999px;
+}
+
+.statusInProgress {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #0f766e;
+  padding: 0.25rem 0.75rem;
+  background: #ecfdf3;
+  border-radius: 999px;
+}
+
+.statusCollected {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #1d4ed8;
+  padding: 0.25rem 0.75rem;
+  background: #eef2ff;
+  border-radius: 999px;
+}
+
+.statusProcessing {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6d28d9;
+  padding: 0.25rem 0.75rem;
+  background: #f5f3ff;
+  border-radius: 999px;
+}
+
+.statusAccepted {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #16a34a;
+  padding: 0.25rem 0.75rem;
+  background: #f0fdf4;
+  border-radius: 999px;
+}
+
+.statusCompleted {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #16a34a;
+  padding: 0.25rem 0.75rem;
+  background: #f0fdf4;
+  border-radius: 999px;
+}
+
+.statusCancelled {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #dc2626;
+  padding: 0.25rem 0.75rem;
+  background: #fef2f2;
+  border-radius: 999px;
+}
+
+/* Action buttons */
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.btn {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.375rem 0.625rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.813rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: inherit;
+}
+
+.btnView {
+  background: #f8fafc;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+}
+
+.btnView:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.btnAccept {
+  background: #f0fdf4;
+  color: #16a34a;
+  border: 1px solid #bbf7d0;
+}
+
+.btnAccept:hover {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.btnReject {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
+.btnReject:hover {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.loading,
+.empty {
+  text-align: center;
+  padding: 3rem 0;
+  color: #94a3b8;
+  font-size: 0.875rem;
+  background: #ffffff;
+  border: 1px solid #f1f5f9;
+  border-radius: 12px;
+}
+
+@media (max-width: 768px) {
+  .table th,
+  .table td {
+    padding: 0.75rem 0.75rem;
+  }
+}

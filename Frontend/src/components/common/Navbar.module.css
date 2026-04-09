@@ -1,0 +1,206 @@
+/* ===== NAVBAR ===== */
+.navbar {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  transition: background var(--transition-base), box-shadow var(--transition-base);
+}
+
+.navbar:is([data-scroll="true"]) {
+  box-shadow: var(--shadow-md);
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 68px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  font-weight: 800;
+  font-size: 1.3rem;
+  letter-spacing: -0.02em;
+  color: #1e3a5f;
+}
+
+.logoIcon {
+  width: 28px;
+  height: 28px;
+  color: #2563eb;
+  animation: heartbeat 2.4s ease-in-out infinite;
+  flex-shrink: 0;
+  /* override gradient text clip for an svg */
+  -webkit-text-fill-color: initial;
+}
+
+@keyframes heartbeat {
+  0%, 100% { transform: scale(1); }
+  14% { transform: scale(1.15); }
+  28% { transform: scale(1); }
+  42% { transform: scale(1.1); }
+  56% { transform: scale(1); }
+}
+
+.navLinks {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.navDropdown {
+  position: relative;
+}
+
+.dropdownMenu {
+  position: absolute;
+  top: calc(100% + 0.6rem);
+  left: 0;
+  min-width: 220px;
+  background: #ffffff;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  border-radius: 14px;
+  box-shadow: 0 16px 30px rgba(15, 23, 42, 0.12);
+  padding: 0.4rem;
+  display: none;
+  flex-direction: column;
+  gap: 0.2rem;
+  z-index: 20;
+}
+
+.navDropdown:hover .dropdownMenu,
+.navDropdown:focus-within .dropdownMenu {
+  display: flex;
+}
+
+.dropdownItem {
+  text-decoration: none;
+  color: var(--color-text-secondary);
+  font-size: 0.88rem;
+  padding: 0.55rem 0.75rem;
+  border-radius: 10px;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.dropdownItem:hover {
+  background: var(--color-surface-alt);
+  color: var(--color-text-primary);
+}
+
+.navLink {
+  text-decoration: none;
+  color: var(--color-text-secondary);
+  font-size: 0.938rem;
+  font-weight: 500;
+  padding: 0.5rem 0.875rem;
+  border-radius: var(--radius-sm);
+  transition: color var(--transition-fast), background var(--transition-fast);
+  position: relative;
+}
+
+.navLink::after {
+  content: '';
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background: var(--gradient-brand);
+  border-radius: 2px;
+  transform: translateX(-50%);
+  transition: width var(--transition-base);
+}
+
+.navLink:hover {
+  color: var(--color-text-primary);
+  background: var(--color-surface-alt);
+}
+
+.navLink:hover::after,
+.navLink.active::after {
+  width: calc(100% - 1.75rem);
+}
+
+.navLink.active {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.registerBtn {
+  text-decoration: none;
+  background: var(--gradient-brand);
+  color: #ffffff !important;
+  padding: 0.5rem 1.375rem;
+  border-radius: var(--radius-full);
+  font-size: 0.938rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  transition: all var(--transition-base);
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+  margin-left: 0.5rem;
+}
+
+.roleLinks {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-left: 0.5rem;
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
+
+.roleLink {
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  font-weight: 600;
+  transition: color var(--transition-fast);
+}
+
+.roleLink:hover {
+  color: var(--color-primary);
+}
+
+.roleDivider {
+  color: var(--color-text-muted);
+}
+
+.registerBtn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+  color: #fff;
+}
+
+@media (max-width: 768px) {
+  .navLinks {
+    gap: 0;
+    justify-content: center;
+  }
+
+  .navLink {
+    padding: 0.5rem 0.625rem;
+    font-size: 0.875rem;
+  }
+
+  .registerBtn {
+    padding: 0.5rem 1rem;
+  }
+
+  .roleLinks {
+    width: 100%;
+    justify-content: center;
+    margin: 0.35rem 0 0;
+  }
+}

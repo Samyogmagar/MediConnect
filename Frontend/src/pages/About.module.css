@@ -1,0 +1,479 @@
+.page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.hero {
+  background: var(--gradient-hero);
+  padding: 5.5rem 0 6rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -140px;
+  right: -80px;
+  width: 520px;
+  height: 520px;
+  background: radial-gradient(circle, rgba(37, 99, 235, 0.12) 0%, transparent 70%);
+  border-radius: 50%;
+}
+
+.hero::after {
+  content: '';
+  position: absolute;
+  bottom: -120px;
+  left: -80px;
+  width: 420px;
+  height: 420px;
+  background: radial-gradient(circle, rgba(5, 150, 105, 0.14) 0%, transparent 70%);
+  border-radius: 50%;
+}
+
+.heroContainer {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4rem;
+  position: relative;
+  z-index: 1;
+  align-items: center;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(37, 99, 235, 0.12);
+  color: var(--color-primary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.4rem 0.9rem;
+  border-radius: var(--radius-full);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border: 1px solid rgba(37, 99, 235, 0.2);
+}
+
+.heroTitle {
+  font-size: clamp(2.4rem, 3.6vw, 3.4rem);
+  font-weight: 800;
+  color: var(--color-text-primary);
+  margin: 1rem 0 1.25rem;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.heroDescription {
+  color: var(--color-text-secondary);
+  font-size: 1.05rem;
+  line-height: 1.8;
+  margin-bottom: 2rem;
+}
+
+.heroCta {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.heroVisual {
+  position: relative;
+}
+
+.heroImage {
+  width: 100%;
+  border-radius: var(--radius-xl);
+  height: 420px;
+  object-fit: cover;
+  box-shadow: var(--shadow-xl);
+  border: 8px solid rgba(255, 255, 255, 0.85);
+}
+
+.heroCard {
+  position: absolute;
+  left: -18px;
+  bottom: 24px;
+  background: #ffffff;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: 0.9rem 1.1rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  max-width: 240px;
+  border: 1px solid var(--color-border);
+}
+
+.heroCardSecondary {
+  top: 28px;
+  right: -10px;
+  left: auto;
+}
+
+.heroCardTitle {
+  font-weight: 700;
+  margin-bottom: 0.2rem;
+  color: var(--color-text-primary);
+}
+
+.heroCardText {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+}
+
+.sectionContainer {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.sectionTitle {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--color-text-primary);
+  margin-bottom: 0.75rem;
+}
+
+.sectionTitleCenter {
+  text-align: center;
+  font-size: 2.1rem;
+  font-weight: 800;
+  margin-bottom: 0.75rem;
+}
+
+.sectionSubtitle {
+  text-align: center;
+  color: var(--color-text-secondary);
+  margin-bottom: 2.5rem;
+}
+
+.sectionText {
+  color: var(--color-text-secondary);
+  line-height: 1.75;
+}
+
+.splitSection {
+  padding: 5rem 0;
+  background: #ffffff;
+}
+
+.splitGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2rem;
+}
+
+.splitCard {
+  background: var(--color-surface-alt);
+  padding: 2.25rem;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+}
+
+.splitCardAccent {
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.1) 0%, rgba(5, 150, 105, 0.12) 100%);
+}
+
+.list {
+  margin-top: 1.25rem;
+  padding-left: 1.2rem;
+  color: var(--color-text-secondary);
+  line-height: 1.8;
+}
+
+.rolesSection {
+  padding: 5rem 0;
+  background: var(--color-surface-alt);
+}
+
+.roleGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1.5rem;
+}
+
+.roleCard {
+  background: #ffffff;
+  border-radius: var(--radius-lg);
+  padding: 1.8rem;
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+  text-align: left;
+}
+
+.roleCard h3 {
+  margin: 1rem 0 0.5rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.roleCard p {
+  color: var(--color-text-secondary);
+  line-height: 1.7;
+}
+
+.roleIcon {
+  color: var(--color-primary);
+}
+
+.statsSection {
+  padding: 3.5rem 0;
+  background: #ffffff;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1.5rem;
+}
+
+.statCard {
+  text-align: center;
+  padding: 1.5rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-alt);
+}
+
+.statValue {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--color-primary);
+  display: block;
+}
+
+.statLabel {
+  color: var(--color-text-secondary);
+  font-size: 0.95rem;
+}
+
+.featuresSection {
+  padding: 5rem 0;
+  background: #ffffff;
+}
+
+.featureGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
+}
+
+.featureCard {
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  padding: 2rem;
+  background: var(--color-surface-alt);
+  box-shadow: var(--shadow-sm);
+}
+
+.featureCard h3 {
+  margin: 1rem 0 0.5rem;
+  font-weight: 700;
+}
+
+.featureCard p {
+  color: var(--color-text-secondary);
+  line-height: 1.7;
+}
+
+.featureIcon {
+  color: var(--color-accent);
+}
+
+.trustSection {
+  padding: 5rem 0;
+  background: var(--color-surface-alt);
+}
+
+.trustCard {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 2rem;
+  background: #ffffff;
+  border-radius: var(--radius-xl);
+  padding: 2.5rem;
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+}
+
+.trustList {
+  display: grid;
+  gap: 1rem;
+}
+
+.trustItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+.storySection {
+  padding: 5rem 0;
+  background: #ffffff;
+}
+
+.storyGrid {
+  display: grid;
+  grid-template-columns: 1fr 1.1fr;
+  gap: 2.5rem;
+  align-items: center;
+}
+
+.storyCards {
+  display: grid;
+  gap: 1rem;
+}
+
+.storyCard {
+  background: var(--color-surface-alt);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  border: 1px solid var(--color-border);
+}
+
+.storyTag {
+  display: inline-block;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--color-primary);
+  margin-bottom: 0.5rem;
+}
+
+.roadmapSection {
+  padding: 5rem 0 6rem;
+  background: var(--color-surface-alt);
+}
+
+.roadmapGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.5rem;
+}
+
+.roadmapCard {
+  background: #ffffff;
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+}
+
+.roadmapCard h3 {
+  margin: 1rem 0 0.5rem;
+}
+
+.roadmapCard p {
+  color: var(--color-text-secondary);
+  line-height: 1.7;
+}
+
+.roadmapIcon {
+  color: var(--color-primary);
+}
+
+.ctaSection {
+  padding: 4.5rem 0 6rem;
+  background: #ffffff;
+}
+
+.ctaCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  padding: 2.75rem;
+  border-radius: var(--radius-xl);
+  background: var(--gradient-brand);
+  color: #ffffff;
+  box-shadow: var(--shadow-xl);
+}
+
+.ctaCard h2 {
+  font-size: 2.1rem;
+  margin-bottom: 0.75rem;
+}
+
+.ctaCard p {
+  color: rgba(255, 255, 255, 0.85);
+  max-width: 520px;
+}
+
+.ctaActions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 1024px) {
+  .heroContainer,
+  .splitGrid,
+  .trustCard,
+  .storyGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .heroVisual {
+    margin-top: 2rem;
+  }
+
+  .heroCard {
+    position: static;
+    margin-top: 1rem;
+  }
+
+  .heroCardSecondary {
+    margin-bottom: 1rem;
+  }
+
+  .roleGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .statsGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .roadmapGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .ctaCard {
+    flex-direction: column;
+    text-align: center;
+  }
+}
+
+@media (max-width: 640px) {
+  .hero {
+    padding: 4.5rem 0 5rem;
+  }
+
+  .heroImage {
+    height: 300px;
+  }
+
+  .roleGrid,
+  .statsGrid,
+  .featureGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .ctaCard {
+    padding: 2rem;
+  }
+
+  .ctaCard h2 {
+    font-size: 1.8rem;
+  }
+}

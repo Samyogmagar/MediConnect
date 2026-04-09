@@ -1,0 +1,80 @@
+.card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 1.25rem;
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+.name {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0.25rem 0 0;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.85rem;
+}
+
+.infoItem {
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-start;
+  background: #f8fafc;
+  padding: 0.7rem 0.85rem;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  color: #475569;
+}
+
+.infoLabel {
+  display: block;
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+.infoValue {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.instructions {
+  margin-top: 1rem;
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  background: #fefce8;
+  border: 1px solid #fde68a;
+}
+
+.instructionsText {
+  margin: 0.4rem 0 0;
+  font-size: 0.9rem;
+  color: #78350f;
+  line-height: 1.5;
+}
+
+@media (max-width: 1024px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
