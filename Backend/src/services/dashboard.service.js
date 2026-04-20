@@ -186,11 +186,22 @@ export const getDoctorDashboard = async (userId) => {
     appointments.total += count;
   });
 
-  const diagnostics = { total: 0, assigned: 0, in_progress: 0, completed: 0, cancelled: 0 };
+  const diagnostics = {
+    total: 0,
+    assigned: 0,
+    sample_collected: 0,
+    processing: 0,
+    report_uploaded: 0,
+    in_progress: 0,
+    completed: 0,
+    cancelled: 0,
+  };
   diagnosticStats.forEach(({ _id, count }) => {
     diagnostics[_id] = count;
     diagnostics.total += count;
   });
+  diagnostics.in_progress = (diagnostics.sample_collected || 0) + (diagnostics.processing || 0);
+  diagnostics.completed = diagnostics.report_uploaded || 0;
 
   const medications = { total: 0, active: 0, completed: 0, discontinued: 0 };
   medicationStats.forEach(({ _id, count }) => {

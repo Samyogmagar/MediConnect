@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import LabLayout from '../../components/lab/LabLayout';
 import NotificationItem from '../../components/lab/NotificationItem';
 import notificationService from '../../services/notificationService';
+import { resolveNotificationTarget } from '../../utils/notificationTarget.util';
 import styles from './Notifications.module.css';
 
 const Notifications = () => {
@@ -55,23 +56,7 @@ const Notifications = () => {
   ).length;
 
   const handleNotificationClick = (notification) => {
-    const actionUrl = notification.actionUrl || '';
-    if (actionUrl.startsWith('/diagnostics/')) {
-      const id = actionUrl.split('/diagnostics/')[1];
-      if (id) {
-        navigate(`/lab/tests/${id}`);
-        return;
-      }
-    }
-
-    if (notification.referenceModel === 'DiagnosticTest' && notification.referenceId) {
-      navigate(`/lab/tests/${notification.referenceId}`);
-      return;
-    }
-
-    if (actionUrl.startsWith('/lab/')) {
-      navigate(actionUrl);
-    }
+    navigate(resolveNotificationTarget(notification, 'lab'));
   };
 
   if (loading) {

@@ -53,8 +53,12 @@ const Footer = () => {
           <div className={styles.column}>
             <h4 className={styles.columnTitle}>Support</h4>
             <ul className={styles.linkList}>
-              <li className={styles.contactItem}>Email: support@mediconnect.np</li>
-              <li className={styles.contactItem}>Phone: +977-1-XXXXXXX</li>
+              <li className={styles.contactItem}>
+                Email: <a href="mailto:support@mediconnect.np" className={styles.link}>support@mediconnect.np</a>
+              </li>
+              <li className={styles.contactItem}>
+                Phone: <a href="tel:+9771XXXXXXX" className={styles.link}>+977-1-XXXXXXX</a>
+              </li>
               <li className={styles.contactItem}>Kathmandu, Nepal</li>
               <li>
                 <a href="#faq" className={styles.link}>Help Center</a>
@@ -80,9 +84,9 @@ const Footer = () => {
           <div className={styles.column}>
             <h4 className={styles.columnTitle}>Follow Us</h4>
             <div className={styles.social}>
-              <a href="#" className={styles.socialLink} aria-label="Facebook">FB</a>
-              <a href="#" className={styles.socialLink} aria-label="Twitter">TW</a>
-              <a href="#" className={styles.socialLink} aria-label="LinkedIn">LI</a>
+              <a href="#" className={styles.socialLink} aria-label="Facebook">Facebook</a>
+              <a href="#" className={styles.socialLink} aria-label="Twitter">Twitter</a>
+              <a href="#" className={styles.socialLink} aria-label="LinkedIn">LinkedIn</a>
             </div>
           </div>
         </div>

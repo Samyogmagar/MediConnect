@@ -9,6 +9,7 @@ const UploadReportForm = ({
 }) => {
   const [selectedTestId, setSelectedTestId] = useState('');
   const [file, setFile] = useState(null);
+  const [fileError, setFileError] = useState('');
   const [notes, setNotes] = useState('');
   const [findings, setFindings] = useState('');
   const [recommendations, setRecommendations] = useState('');
@@ -45,18 +46,20 @@ const UploadReportForm = ({
   const validateAndSetFile = (f) => {
     const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
     if (!allowedTypes.includes(f.type)) {
-      alert('Only PDF, JPG, and PNG files are allowed.');
+      setFileError('Only PDF, JPG, and PNG files are allowed.');
       return;
     }
     if (f.size > 10 * 1024 * 1024) {
-      alert('File size must be less than 10MB.');
+      setFileError('File size must be less than 10MB.');
       return;
     }
+    setFileError('');
     setFile(f);
   };
 
   const removeFile = () => {
     setFile(null);
+    setFileError('');
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
@@ -75,6 +78,7 @@ const UploadReportForm = ({
   const handleClear = () => {
     setSelectedTestId('');
     setFile(null);
+    setFileError('');
     setNotes('');
     setFindings('');
     setRecommendations('');
@@ -171,6 +175,7 @@ const UploadReportForm = ({
             className={styles.hiddenInput}
           />
         </div>
+        {fileError && <p className={styles.errorText}>{fileError}</p>}
       </div>
 
       <div className={styles.formGroup}>

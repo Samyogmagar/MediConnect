@@ -1,4 +1,4 @@
-.page {
+﻿.page {
   max-width: 1200px;
   margin: 0 auto;
 }
@@ -183,7 +183,7 @@
 }
 
 .primaryBtn {
-  background: #0f766e;
+  background: #2563eb;
   color: #ffffff;
 }
 
@@ -197,3 +197,4 @@
     grid-template-columns: 1fr;
   }
 }
+

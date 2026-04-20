@@ -39,7 +39,7 @@ const appointmentService = {
 
   /**
    * Create a new appointment (Patient only)
-    * @param {Object} data - { doctorId, dateTime, reason, notes?, paymentMethod, paymentAmount, khaltiPidx? }
+    * @param {Object} data - { doctorId, dateTime, reason, notes?, paymentMethod, paymentAmount, khaltiPidx?, followUpOf? }
    */
   async createAppointment(data) {
     const response = await API.post('/appointments', data);

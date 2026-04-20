@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Mail, Lock, Info } from 'lucide-react';
 import AuthLayout from '../../components/auth/AuthLayout';
 import AuthInput from '../../components/auth/AuthInput';
+import SocialLoginButtons from '../../components/auth/SocialLoginButtons';
 import Button from '../../components/common/Button';
 import useAuth from '../../hooks/useAuth';
 import healthcareImg from '../../assets/healthcare-illustration.svg';
@@ -14,7 +15,7 @@ const Login = () => {
   const { login, logout } = useAuth();
 
   const [formData, setFormData] = useState({
-    email: '',
+    identifier: '',
     password: '',
   });
   const [errors, setErrors] = useState({});
@@ -48,10 +49,8 @@ const Login = () => {
 
   const validate = () => {
     const newErrors = {};
-    if (!formData.email.trim()) {
-      newErrors.email = 'Email is required';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email';
+    if (!formData.identifier.trim()) {
+      newErrors.identifier = 'Email or phone is required';
     }
     if (!formData.password) {
       newErrors.password = 'Password is required';
@@ -72,13 +71,20 @@ const Login = () => {
     setLoading(true);
     try {
       const response = await login({
-        email: formData.email.trim(),
+        identifier: formData.identifier.trim(),
         password: formData.password,
       });
 
+      const payload = response?.data?.data || response?.data || response;
+
       // Check verification status
-      const user = response.data.user;
-      const isVerified = response.data.isVerified;
+      const user = payload?.user;
+      const isVerified = payload?.isVerified;
+
+      if (!user?.role) {
+        throw new Error('Invalid login response. Missing user role.');
+      }
+
       const role = user.role;
 
       // Block unverified doctors and labs
@@ -146,15 +152,15 @@ const Login = () => {
 
         <form onSubmit={handleSubmit} noValidate>
           <AuthInput
-            label="Email"
-            type="email"
-            name="email"
-            value={formData.email}
+            label="Email or Phone"
+            type="text"
+            name="identifier"
+            value={formData.identifier}
             onChange={handleChange}
-            placeholder="your.email@example.com"
+            placeholder="your.email@example.com or 98XXXXXXXX"
             icon={Mail}
-            error={errors.email}
-            autoComplete="email"
+            error={errors.identifier}
+            autoComplete="username"
             required
           />
 
@@ -171,6 +177,12 @@ const Login = () => {
             required
           />
 
+          <p className={styles.forgotText}>
+            <Link to="/forgot-password" className={styles.switchLink}>
+              Forgot your password?
+            </Link>
+          </p>
+
           <Button
             type="submit"
             variant="primary"
@@ -180,14 +192,20 @@ const Login = () => {
           >
             Login
           </Button>
+
+          <SocialLoginButtons
+            intent="login"
+            onError={setApiError}
+            showUnavailable
+          />
         </form>
 
         <div className={styles.infoBox}>
           <Info size={16} className={styles.infoIcon} />
           <p className={styles.infoText}>
-            <strong>For all users:</strong> Patients, doctors, laboratories, and
-            administrators all log in here. The system will redirect you based on
-            your role after authentication.
+            <strong>Hospital access:</strong> Patients can self-register.
+            Doctors, lab staff, and administrators are created by Super Admin.
+            All roles log in here and are redirected by role.
           </p>
         </div>
 

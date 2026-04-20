@@ -11,13 +11,16 @@ import {
   Sun,
   Monitor,
   AlertTriangle,
-  Camera,
   Eye,
   EyeOff,
 } from 'lucide-react';
 import DashboardLayout from '../../components/layout/DashboardLayout';
+import { ProfilePhotoUploader } from '../../components/common/avatar';
+import { useToast } from '../../components/common/feedback/ToastProvider';
+import { useModal } from '../../components/common/feedback/ModalProvider';
 import useAuth from '../../hooks/useAuth';
 import authService from '../../services/authService';
+import notificationService from '../../services/notificationService';
 import styles from './Settings.module.css';
 
 const PROVINCES = [
@@ -31,6 +34,8 @@ const PROVINCES = [
 ];
 
 const Settings = () => {
+  const { showToast } = useToast();
+  const { showConfirm } = useModal();
   const { user, refreshUser } = useAuth();
 
   const [profile, setProfile] = useState({
@@ -58,9 +63,19 @@ const Settings = () => {
     cancellations: true,
     prescriptions: true,
     labReports: true,
+    medicationReminders: true,
+    followUps: true,
+    system: true,
+    channels: {
+      inApp: true,
+      email: true,
+      push: false,
+    },
   });
   const [notificationMsg, setNotificationMsg] = useState({ type: '', text: '' });
   const [notificationSaving, setNotificationSaving] = useState(false);
+  const [pushSaving, setPushSaving] = useState(false);
+  const [pushTestSending, setPushTestSending] = useState(false);
 
   const [appearance, setAppearance] = useState('system');
   const [appearanceMsg, setAppearanceMsg] = useState({ type: '', text: '' });
@@ -107,6 +122,14 @@ const Settings = () => {
       cancellations: currentUser.notificationPreferences?.cancellations ?? true,
       prescriptions: currentUser.notificationPreferences?.prescriptions ?? true,
       labReports: currentUser.notificationPreferences?.labReports ?? true,
+      medicationReminders: currentUser.notificationPreferences?.medicationReminders ?? true,
+      followUps: currentUser.notificationPreferences?.followUps ?? true,
+      system: currentUser.notificationPreferences?.system ?? true,
+      channels: {
+        inApp: currentUser.notificationPreferences?.channels?.inApp ?? true,
+        email: currentUser.notificationPreferences?.channels?.email ?? true,
+        push: currentUser.notificationPreferences?.channels?.push ?? false,
+      },
     });
     setAppearance(currentUser.appearancePreference || 'system');
   };
@@ -114,6 +137,35 @@ const Settings = () => {
   useEffect(() => {
     applyUserProfile(user);
   }, [user]);
+
+  useEffect(() => {
+    const loadNotificationPreferences = async () => {
+      try {
+        const res = await notificationService.getPreferences();
+        const prefs = res?.data?.notificationPreferences || res?.data?.data?.notificationPreferences || {};
+
+        setNotifications((prev) => ({
+          ...prev,
+          appointments: prefs.appointments ?? prev.appointments,
+          cancellations: prefs.cancellations ?? prev.cancellations,
+          prescriptions: prefs.prescriptions ?? prev.prescriptions,
+          labReports: prefs.labReports ?? prev.labReports,
+          medicationReminders: prefs.medicationReminders ?? prev.medicationReminders,
+          followUps: prefs.followUps ?? prev.followUps,
+          system: prefs.system ?? prev.system,
+          channels: {
+            inApp: prefs.channels?.inApp ?? prev.channels.inApp,
+            email: prefs.channels?.email ?? prev.channels.email,
+            push: prefs.channels?.push ?? prev.channels.push,
+          },
+        }));
+      } catch {
+        // Use auth payload fallback when endpoint is unavailable.
+      }
+    };
+
+    loadNotificationPreferences();
+  }, []);
 
   useEffect(() => {
     if (!appearance) return;
@@ -137,7 +189,18 @@ const Settings = () => {
   };
 
   const handleNotificationToggle = (field) => {
-    setNotifications((n) => ({ ...n, [field]: !n[field] }));
+    if (field.startsWith('channels.')) {
+      const channel = field.split('.')[1];
+      setNotifications((n) => ({
+        ...n,
+        channels: {
+          ...n.channels,
+          [channel]: !n.channels[channel],
+        },
+      }));
+    } else {
+      setNotifications((n) => ({ ...n, [field]: !n[field] }));
+    }
     setNotificationMsg({ type: '', text: '' });
   };
 
@@ -216,9 +279,7 @@ const Settings = () => {
     setNotificationSaving(true);
     setNotificationMsg({ type: '', text: '' });
     try {
-      await authService.updateProfile({
-        notificationPreferences: notifications,
-      });
+      await notificationService.updatePreferences(notifications);
       await refreshUser();
       setNotificationMsg({ type: 'success', text: 'Notification preferences saved.' });
     } catch (err) {
@@ -228,6 +289,97 @@ const Settings = () => {
       });
     } finally {
       setNotificationSaving(false);
+    }
+  };
+
+  const handleEnablePush = async () => {
+    setPushSaving(true);
+    setNotificationMsg({ type: '', text: '' });
+    try {
+      await notificationService.enablePushOnCurrentDevice();
+      setNotifications((prev) => ({
+        ...prev,
+        channels: {
+          ...prev.channels,
+          push: true,
+        },
+      }));
+      setNotificationMsg({ type: 'success', text: 'Push notifications enabled for this device.' });
+    } catch (err) {
+      setNotificationMsg({
+        type: 'error',
+        text: err?.message || 'Failed to enable push notifications on this device.',
+      });
+    } finally {
+      setPushSaving(false);
+    }
+  };
+
+  const handleDisablePush = async () => {
+    setPushSaving(true);
+    setNotificationMsg({ type: '', text: '' });
+    try {
+      await notificationService.disablePushOnCurrentDevice();
+      setNotifications((prev) => ({
+        ...prev,
+        channels: {
+          ...prev.channels,
+          push: false,
+        },
+      }));
+      setNotificationMsg({ type: 'success', text: 'Push notifications disabled for this device.' });
+    } catch (err) {
+      setNotificationMsg({
+        type: 'error',
+        text: err?.message || 'Failed to disable push notifications on this device.',
+      });
+    } finally {
+      setPushSaving(false);
+    }
+  };
+
+  const handleSendTestPush = async () => {
+    setPushTestSending(true);
+    setNotificationMsg({ type: '', text: '' });
+
+    try {
+      const response = await notificationService.sendTestPush({
+        title: 'MediConnect Test Notification',
+        message: 'Push delivery check from your settings page.',
+        actionUrl: '/notifications',
+        actionLabel: 'Open Notifications',
+      });
+
+      const data = response?.data || {};
+
+      if (data.sentCount > 0) {
+        setNotificationMsg({
+          type: 'success',
+          text: `Test push sent to ${data.sentCount} device(s).`,
+        });
+      } else if (data.reason === 'no_subscriptions') {
+        setNotificationMsg({
+          type: 'error',
+          text: 'No subscribed devices found. Enable push on this device first.',
+        });
+      } else if (data.reason === 'vapid_not_configured') {
+        setNotificationMsg({
+          type: 'error',
+          text: 'Server push is not configured yet (missing VAPID keys).',
+        });
+      } else {
+        setNotificationMsg({
+          type: 'error',
+          text: 'Push test did not send. Please verify your push setup.',
+        });
+      }
+    } catch (err) {
+      setNotificationMsg({
+        type: 'error',
+        text: err.response?.data?.message || 'Failed to send test push notification.',
+      });
+    } finally {
+      setPushTestSending(false);
     }
   };
 
@@ -277,10 +429,22 @@ const Settings = () => {
     }
   };
 
-  const handleDeactivate = () => {
-    if (window.confirm('Are you sure you want to deactivate your account? This can be reversed.')) {
-      alert('Account deactivation is not yet implemented.');
-    }
+  const handleDeactivate = async () => {
+    const { confirmed } = await showConfirm({
+      title: 'Deactivate account?',
+      message: 'Are you sure you want to deactivate your account? This can be reversed.',
+      confirmText: 'Deactivate',
+      cancelText: 'Keep account',
+      confirmVariant: 'danger',
+    });
+
+    if (!confirmed) return;
+
+    showToast({
+      type: 'info',
+      title: 'Not available yet',
+      message: 'Account deactivation is not yet implemented.',
+    });
   };
 
   const passwordStrength = useMemo(() => {
@@ -316,18 +480,14 @@ const Settings = () => {
           </div>
 
           <div className={styles.photoRow}>
-            <div className={styles.photoAvatar}>
-              {user?.profileImageUrl ? <img src={user.profileImageUrl} alt="" /> : <User size={36} />}
-              <span className={styles.photoBadge}><Camera size={12} /></span>
-            </div>
-            <div className={styles.photoInfo}>
-              <h4>Profile Photo</h4>
-              <p>JPG, PNG or GIF. Max size 2MB</p>
-              <div className={styles.photoActions}>
-                <button type="button" className={styles.uploadBtn}>Upload New Photo</button>
-                <button type="button" className={styles.removeBtn}>Remove</button>
-              </div>
-            </div>
+            <ProfilePhotoUploader
+              currentImage={user?.profileImageUrl}
+              name={user?.name}
+              onUploaded={refreshUser}
+              onRemoved={refreshUser}
+              size="lg"
+              shape="rounded"
+            />
           </div>
 
           <div className={styles.divider} />
@@ -647,6 +807,117 @@ const Settings = () => {
                 <span className={styles.slider} />
               </span>
             </label>
+            <label className={styles.toggleRow}>
+              <div>
+                <span className={styles.toggleTitle}>Medication reminders</span>
+                <span className={styles.toggleDesc}>Receive reminders during active prescription duration.</span>
+              </div>
+              <span className={styles.toggleSwitch}>
+                <input
+                  type="checkbox"
+                  checked={notifications.medicationReminders}
+                  onChange={() => handleNotificationToggle('medicationReminders')}
+                />
+                <span className={styles.slider} />
+              </span>
+            </label>
+            <label className={styles.toggleRow}>
+              <div>
+                <span className={styles.toggleTitle}>Follow-up reminders</span>
+                <span className={styles.toggleDesc}>Get notified about recommended follow-up visits.</span>
+              </div>
+              <span className={styles.toggleSwitch}>
+                <input
+                  type="checkbox"
+                  checked={notifications.followUps}
+                  onChange={() => handleNotificationToggle('followUps')}
+                />
+                <span className={styles.slider} />
+              </span>
+            </label>
+            <label className={styles.toggleRow}>
+              <div>
+                <span className={styles.toggleTitle}>System updates</span>
+                <span className={styles.toggleDesc}>Important security and account-related notices.</span>
+              </div>
+              <span className={styles.toggleSwitch}>
+                <input
+                  type="checkbox"
+                  checked={notifications.system}
+                  onChange={() => handleNotificationToggle('system')}
+                />
+                <span className={styles.slider} />
+              </span>
+            </label>
+            <label className={styles.toggleRow}>
+              <div>
+                <span className={styles.toggleTitle}>In-app notifications</span>
+                <span className={styles.toggleDesc}>Show updates in bell dropdown and notifications page.</span>
+              </div>
+              <span className={styles.toggleSwitch}>
+                <input
+                  type="checkbox"
+                  checked={notifications.channels.inApp}
+                  onChange={() => handleNotificationToggle('channels.inApp')}
+                />
+                <span className={styles.slider} />
+              </span>
+            </label>
+            <label className={styles.toggleRow}>
+              <div>
+                <span className={styles.toggleTitle}>Email notifications</span>
+                <span className={styles.toggleDesc}>Receive high-priority transactional updates by email.</span>
+              </div>
+              <span className={styles.toggleSwitch}>
+                <input
+                  type="checkbox"
+                  checked={notifications.channels.email}
+                  onChange={() => handleNotificationToggle('channels.email')}
+                />
+                <span className={styles.slider} />
+              </span>
+            </label>
+            <label className={styles.toggleRow}>
+              <div>
+                <span className={styles.toggleTitle}>Push notifications</span>
+                <span className={styles.toggleDesc}>Enable browser push notifications for this account.</span>
+              </div>
+              <span className={styles.toggleSwitch}>
+                <input
+                  type="checkbox"
+                  checked={notifications.channels.push}
+                  onChange={() => handleNotificationToggle('channels.push')}
+                />
+                <span className={styles.slider} />
+              </span>
+            </label>
+          </div>
+
+          <div className={styles.pushActions}>
+            <button
+              className={styles.cancelBtn}
+              type="button"
+              onClick={handleEnablePush}
+              disabled={pushSaving || pushTestSending}
+            >
+              {pushSaving ? 'Please wait...' : 'Enable Push On This Device'}
+            </button>
+            <button
+              className={styles.cancelBtn}
+              type="button"
+              onClick={handleDisablePush}
+              disabled={pushSaving || pushTestSending}
+            >
+              Disable Push On This Device
+            </button>
+            <button
+              className={styles.cancelBtn}
+              type="button"
+              onClick={handleSendTestPush}
+              disabled={pushSaving || pushTestSending}
+            >
+              {pushTestSending ? 'Sending Test...' : 'Send Test Push'}
+            </button>
           </div>
 
           <div className={styles.formActions}>

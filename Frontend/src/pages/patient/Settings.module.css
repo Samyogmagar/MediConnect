@@ -348,6 +348,13 @@
   gap: 0.75rem;
 }
 
+.pushActions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+
 .toggleRow {
   display: flex;
   align-items: center;

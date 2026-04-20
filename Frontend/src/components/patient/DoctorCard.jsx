@@ -52,13 +52,22 @@ const DoctorCard = ({ doctor }) => {
       <p className={styles.availability}>Available Today</p>
       <p className={styles.fee}>NPR {doctor.consultationFee || '1,000'}</p>
 
-      <Button
-        variant="primary"
-        fullWidth
-        onClick={() => navigate(`/patient/book-appointment/${doctor._id}`)}
-      >
-        Book Appointment
-      </Button>
+      <div className={styles.actions}>
+        <Button
+          variant="secondary"
+          fullWidth
+          onClick={() => navigate(`/patient/doctors/${doctor._id}`)}
+        >
+          View Profile
+        </Button>
+        <Button
+          variant="primary"
+          fullWidth
+          onClick={() => navigate(`/patient/book-appointment/${doctor._id}`)}
+        >
+          Book Appointment
+        </Button>
+      </div>
     </div>
   );
 };

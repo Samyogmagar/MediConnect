@@ -3,10 +3,14 @@ import { Eye, UserCheck, UserX, User } from 'lucide-react';
 import AdminLayout from '../../components/admin/AdminLayout';
 import FilterToolbar from '../../components/admin/FilterToolbar';
 import DataTable from '../../components/admin/DataTable';
+import { useToast } from '../../components/common/feedback/ToastProvider';
+import { useModal } from '../../components/common/feedback/ModalProvider';
 import adminService from '../../services/adminService';
 import styles from './DoctorApplications.module.css';
 
 const DoctorApplications = () => {
+  const { showToast } = useToast();
+  const { showConfirm } = useModal();
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -52,7 +56,15 @@ const DoctorApplications = () => {
   }, [applications, search, statusFilter]);
 
   const handleVerify = async (userId) => {
-    if (!window.confirm('Verify this doctor account?')) return;
+    const { confirmed } = await showConfirm({
+      title: 'Verify doctor account?',
+      message: 'This doctor will gain full system access after verification.',
+      confirmText: 'Verify',
+      cancelText: 'Cancel',
+      confirmVariant: 'success',
+    });
+    if (!confirmed) return;
+
     setActionLoading(userId);
     try {
       await adminService.verifyUser(userId);
@@ -60,16 +72,32 @@ const DoctorApplications = () => {
         prev.map((a) => (a._id === userId ? { ...a, isVerified: true } : a))
       );
       setPendingCount((c) => Math.max(0, c - 1));
-      alert('Doctor verified successfully!');
+      showToast({
+        type: 'success',
+        title: 'Doctor verified',
+        message: 'Doctor account verified successfully.',
+      });
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to verify doctor.');
+      showToast({
+        type: 'error',
+        title: 'Verification failed',
+        message: err.response?.data?.message || 'Failed to verify doctor.',
+      });
     } finally {
       setActionLoading(null);
     }
   };
 
   const handleUnverify = async (userId) => {
-    if (!window.confirm('Unverify this doctor account? They will not be able to access the system.')) return;
+    const { confirmed } = await showConfirm({
+      title: 'Unverify doctor account?',
+      message: 'This doctor will lose system access until re-verified.',
+      confirmText: 'Unverify',
+      cancelText: 'Cancel',
+      confirmVariant: 'danger',
+    });
+    if (!confirmed) return;
+
     setActionLoading(userId);
     try {
       // We need to add an unverify endpoint
@@ -78,9 +106,17 @@ const DoctorApplications = () => {
         prev.map((a) => (a._id === userId ? { ...a, isVerified: false } : a))
       );
       setPendingCount((c) => c + 1);
-      alert('Doctor unverified successfully!');
+      showToast({
+        type: 'success',
+        title: 'Doctor unverified',
+        message: 'Doctor account unverified successfully.',
+      });
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to unverify doctor.');
+      showToast({
+        type: 'error',
+        title: 'Unverify failed',
+        message: err.response?.data?.message || 'Failed to unverify doctor.',
+      });
     } finally {
       setActionLoading(null);
     }

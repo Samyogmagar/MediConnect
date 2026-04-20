@@ -9,17 +9,77 @@ import { ROLES } from '../constants/roles.js';
  */
 class AuthController {
   /**
+   * Get all social auth provider statuses (patient flow only).
+   * GET /api/auth/oauth/providers
+   */
+  async getSocialProviders(req, res) {
+    try {
+      const { intent = 'login' } = req.query;
+      const result = authService.listSocialProviders(intent);
+      return successResponse(res, 200, 'Social providers retrieved', result);
+    } catch (error) {
+      return errorResponse(res, error.statusCode || 500, error.message || MESSAGES.SERVER.ERROR);
+    }
+  }
+
+  /**
+   * Get social auth provider start metadata (patient flow only).
+   * GET /api/auth/oauth/:provider/start
+   */
+  async getSocialProviderStart(req, res) {
+    try {
+      const { provider } = req.params;
+      const { intent = 'login' } = req.query;
+
+      const result = authService.getSocialProviderStart(provider, intent);
+      return successResponse(res, 200, 'Social provider available', result);
+    } catch (error) {
+      return errorResponse(res, error.statusCode || 500, error.message || MESSAGES.SERVER.ERROR);
+    }
+  }
+
+  /**
+   * Complete social auth flow and issue app token.
+   * POST /api/auth/oauth/:provider/complete
+   */
+  async completeSocialProviderAuth(req, res) {
+    try {
+      const { provider } = req.params;
+      const { code, state } = req.body;
+
+      const result = await authService.completeSocialProviderAuth(provider, { code, state });
+
+      res.cookie('authToken', result.token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      });
+
+      return successResponse(res, 200, result.message, {
+        user: result.user,
+        token: result.token,
+        isVerified: result.user?.isVerified,
+        isNewUser: Boolean(result.isNewUser),
+      });
+    } catch (error) {
+      return errorResponse(res, error.statusCode || 500, error.message || MESSAGES.SERVER.ERROR);
+    }
+  }
+
+  /**
    * Register a new user (patient, doctor, or lab)
    * POST /api/auth/register
    */
   async register(req, res) {
     try {
-      const { name, email, password, confirmPassword, role, professionalDetails, phone, address } = req.body;
+      const { fullName, email, password, confirmPassword, phone, dob, gender, address } = req.body;
 
       // Basic validation
       const errors = [];
-      if (!name) errors.push({ field: 'name', message: MESSAGES.VALIDATION.NAME_REQUIRED });
+      if (!fullName) errors.push({ field: 'fullName', message: MESSAGES.VALIDATION.NAME_REQUIRED });
       if (!email) errors.push({ field: 'email', message: MESSAGES.VALIDATION.EMAIL_REQUIRED });
+      if (!phone) errors.push({ field: 'phone', message: 'Phone number is required' });
       if (!password) errors.push({ field: 'password', message: MESSAGES.VALIDATION.PASSWORD_REQUIRED });
       if (!confirmPassword) errors.push({ field: 'confirmPassword', message: MESSAGES.VALIDATION.CONFIRM_PASSWORD_REQUIRED });
       if (password && confirmPassword && password !== confirmPassword) {
@@ -31,12 +91,13 @@ class AuthController {
       }
 
       const result = await authService.register({
-        name,
+        name: fullName,
         email,
         password,
-        role: role || ROLES.PATIENT,
-        professionalDetails,
+        role: ROLES.PATIENT,
         phone,
+        dateOfBirth: dob,
+        gender,
         address,
       });
 
@@ -64,18 +125,19 @@ class AuthController {
    */
   async login(req, res) {
     try {
-      const { email, password } = req.body;
+      const { email, phone, identifier, password } = req.body;
+      const loginIdentifier = identifier || email || phone;
 
       // Basic validation
       const errors = [];
-      if (!email) errors.push({ field: 'email', message: MESSAGES.VALIDATION.EMAIL_REQUIRED });
+      if (!loginIdentifier) errors.push({ field: 'identifier', message: 'Email or phone is required' });
       if (!password) errors.push({ field: 'password', message: MESSAGES.VALIDATION.PASSWORD_REQUIRED });
 
       if (errors.length > 0) {
         return validationErrorResponse(res, 'Validation failed', errors);
       }
 
-      const result = await authService.login({ email, password });
+      const result = await authService.login({ identifier: loginIdentifier, password });
 
       // Set auth cookie
       res.cookie('authToken', result.token, {
@@ -92,6 +154,88 @@ class AuthController {
       });
     } catch (error) {
       console.error('Login error:', error);
+      return errorResponse(res, error.statusCode || 500, error.message || MESSAGES.SERVER.ERROR);
+    }
+  }
+
+  /**
+   * Request password reset OTP
+   * POST /api/auth/forgot-password
+   */
+  async forgotPassword(req, res) {
+    try {
+      const { email } = req.body;
+      if (!email) {
+        return validationErrorResponse(res, 'Validation failed', [
+          { field: 'email', message: MESSAGES.VALIDATION.EMAIL_REQUIRED },
+        ]);
+      }
+
+      const result = await authService.requestPasswordResetOtp(email);
+      return successResponse(res, 200, result.message, {
+        ...(result.devOtp ? { devOtp: result.devOtp } : {}),
+      });
+    } catch (error) {
+      console.error('Forgot password error:', error);
+      return errorResponse(res, error.statusCode || 500, error.message || MESSAGES.SERVER.ERROR);
+    }
+  }
+
+  /**
+   * Verify password reset OTP
+   * POST /api/auth/verify-reset-otp
+   */
+  async verifyResetOtp(req, res) {
+    try {
+      const { email, otp } = req.body;
+      const errors = [];
+      if (!email) errors.push({ field: 'email', message: MESSAGES.VALIDATION.EMAIL_REQUIRED });
+      if (!otp) errors.push({ field: 'otp', message: 'OTP is required' });
+
+      if (errors.length > 0) {
+        return validationErrorResponse(res, 'Validation failed', errors);
+      }
+
+      const result = await authService.verifyPasswordResetOtp(email, otp);
+      return successResponse(res, 200, result.message);
+    } catch (error) {
+      console.error('Verify reset OTP error:', error);
+      return errorResponse(res, error.statusCode || 500, error.message || MESSAGES.SERVER.ERROR);
+    }
+  }
+
+  /**
+   * Reset password with OTP
+   * POST /api/auth/reset-password
+   */
+  async resetPassword(req, res) {
+    try {
+      const { email, otp, newPassword, confirmPassword } = req.body;
+      const errors = [];
+
+      if (!email) errors.push({ field: 'email', message: MESSAGES.VALIDATION.EMAIL_REQUIRED });
+      if (!otp) errors.push({ field: 'otp', message: 'OTP is required' });
+      if (!newPassword) {
+        errors.push({ field: 'newPassword', message: MESSAGES.VALIDATION.PASSWORD_REQUIRED });
+      }
+      if (newPassword && newPassword.length < 6) {
+        errors.push({ field: 'newPassword', message: 'New password must be at least 6 characters' });
+      }
+      if (!confirmPassword) {
+        errors.push({ field: 'confirmPassword', message: MESSAGES.VALIDATION.CONFIRM_PASSWORD_REQUIRED });
+      }
+      if (newPassword && confirmPassword && newPassword !== confirmPassword) {
+        errors.push({ field: 'confirmPassword', message: MESSAGES.VALIDATION.PASSWORDS_NOT_MATCH });
+      }
+
+      if (errors.length > 0) {
+        return validationErrorResponse(res, 'Validation failed', errors);
+      }
+
+      const result = await authService.resetPasswordWithOtp(email, otp, newPassword);
+      return successResponse(res, 200, result.message);
+    } catch (error) {
+      console.error('Reset password error:', error);
       return errorResponse(res, error.statusCode || 500, error.message || MESSAGES.SERVER.ERROR);
     }
   }
@@ -367,6 +511,40 @@ class AuthController {
       return successResponse(res, 200, 'Profile updated successfully', { user });
     } catch (error) {
       console.error('Update profile error:', error);
+      return errorResponse(res, error.statusCode || 500, error.message || MESSAGES.SERVER.ERROR);
+    }
+  }
+
+  /**
+   * Update profile photo
+   * PUT /api/auth/profile/photo
+   */
+  async updateProfilePhoto(req, res) {
+    try {
+      if (!req.file) {
+        return validationErrorResponse(res, 'Validation failed', [
+          { field: 'photo', message: 'Profile photo file is required' },
+        ]);
+      }
+
+      const user = await authService.updateProfilePhoto(req.user.userId, req.file);
+      return successResponse(res, 200, 'Profile photo updated successfully', { user });
+    } catch (error) {
+      console.error('Update profile photo error:', error);
+      return errorResponse(res, error.statusCode || 500, error.message || MESSAGES.SERVER.ERROR);
+    }
+  }
+
+  /**
+   * Remove profile photo
+   * DELETE /api/auth/profile/photo
+   */
+  async removeProfilePhoto(req, res) {
+    try {
+      const user = await authService.removeProfilePhoto(req.user.userId);
+      return successResponse(res, 200, 'Profile photo removed successfully', { user });
+    } catch (error) {
+      console.error('Remove profile photo error:', error);
       return errorResponse(res, error.statusCode || 500, error.message || MESSAGES.SERVER.ERROR);
     }
   }

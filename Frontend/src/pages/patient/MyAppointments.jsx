@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { Calendar, Search } from 'lucide-react';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import AppointmentCard from '../../components/patient/AppointmentCard';
+import { useToast } from '../../components/common/feedback/ToastProvider';
+import { useModal } from '../../components/common/feedback/ModalProvider';
 import appointmentService from '../../services/appointmentService';
 import styles from './MyAppointments.module.css';
 
@@ -15,6 +17,8 @@ const STATUS_TABS = [
 ];
 
 const MyAppointments = () => {
+  const { showToast } = useToast();
+  const { showConfirm } = useModal();
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -42,14 +46,31 @@ const MyAppointments = () => {
   }, [fetchAppointments]);
 
   const handleCancel = async (id) => {
-    if (!window.confirm('Are you sure you want to cancel this appointment?')) return;
+    const { confirmed } = await showConfirm({
+      title: 'Cancel appointment?',
+      message: 'Are you sure you want to cancel this appointment?',
+      confirmText: 'Yes, cancel',
+      cancelText: 'Keep appointment',
+      confirmVariant: 'danger',
+    });
+    if (!confirmed) return;
+
     try {
       await appointmentService.cancelAppointment(id);
       setAppointments((prev) =>
         prev.map((a) => (a._id === id ? { ...a, status: 'cancelled' } : a))
       );
+      showToast({
+        type: 'success',
+        title: 'Appointment cancelled',
+        message: 'Your appointment has been cancelled successfully.',
+      });
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to cancel appointment.');
+      showToast({
+        type: 'error',
+        title: 'Cancellation failed',
+        message: err.response?.data?.message || 'Failed to cancel appointment.',
+      });
     }
   };
 

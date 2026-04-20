@@ -1,4 +1,4 @@
-.page {
+﻿.page {
   max-width: 1200px;
   margin: 0 auto;
 }
@@ -71,7 +71,7 @@
   width: 100%;
   height: 100%;
   background: rgba(14, 165, 164, 0.18);
-  color: #0f766e;
+  color: #2563eb;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -115,7 +115,7 @@
   font-size: 0.75rem;
   font-weight: 500;
   background: rgba(14, 165, 164, 0.12);
-  color: #0f766e;
+  color: #2563eb;
   padding: 0.25rem 0.7rem;
   border-radius: 999px;
 }
@@ -1141,3 +1141,4 @@
     width: 100%;
   }
 }
+

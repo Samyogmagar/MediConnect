@@ -48,8 +48,8 @@ const quickActions = [
     title: 'Medical Records',
     description: 'View your health documents',
     to: '/patient/records',
-    color: '#0f766e',
-    bg: '#ecfdf3',
+    color: '#2563eb',
+    bg: '#eff6ff',
   },
   {
     icon: Stethoscope,

@@ -1,10 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Bell, CheckCheck, Trash2 } from 'lucide-react';
 import DoctorLayout from '../../components/doctor/DoctorLayout';
 import notificationService from '../../services/notificationService';
+import { resolveNotificationTarget } from '../../utils/notificationTarget.util';
 import styles from './Notifications.module.css';
 
 const Notifications = () => {
+  const navigate = useNavigate();
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -88,6 +91,10 @@ const Notifications = () => {
     return `${days}d ago`;
   };
 
+  const handleNotificationClick = (notification) => {
+    navigate(resolveNotificationTarget(notification, 'doctor'));
+  };
+
   const getTypeIcon = (type) => {
     if (type?.includes('appointment')) return '📅';
     if (type?.includes('diagnostic')) return '🔬';
@@ -139,6 +146,7 @@ const Notifications = () => {
                 <div
                   key={notif._id}
                   className={`${styles.notifCard} ${!notif.isRead ? styles.unread : ''}`}
+                  onClick={() => handleNotificationClick(notif)}
                 >
                   <div className={styles.notifIcon}>{getTypeIcon(notif.type)}</div>
                   <div className={styles.notifContent}>

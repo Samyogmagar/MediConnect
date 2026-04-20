@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Bell,
   AlertTriangle,
@@ -11,7 +12,9 @@ import {
   CheckCheck,
 } from 'lucide-react';
 import AdminLayout from '../../components/admin/AdminLayout';
+import { useModal } from '../../components/common/feedback/ModalProvider';
 import notificationService from '../../services/notificationService';
+import { resolveNotificationTarget } from '../../utils/notificationTarget.util';
 import styles from './Notifications.module.css';
 
 const typeIconMap = {
@@ -40,6 +43,8 @@ const priorityMap = {
 };
 
 const Notifications = () => {
+  const navigate = useNavigate();
+  const { showConfirm } = useModal();
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -94,7 +99,15 @@ const Notifications = () => {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Delete this notification?')) return;
+    const { confirmed } = await showConfirm({
+      title: 'Delete notification?',
+      message: 'Delete this notification?',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      confirmVariant: 'danger',
+    });
+    if (!confirmed) return;
+
     try {
       await notificationService.deleteNotification(id);
       const deleted = notifications.find((n) => n._id === id);
@@ -159,7 +172,10 @@ const Notifications = () => {
                 <div
                   key={n._id}
                   className={`${styles.card} ${!n.isRead ? styles.unread : ''}`}
-                  onClick={() => !n.isRead && handleMarkAsRead(n._id)}
+                  onClick={() => {
+                    if (!n.isRead) handleMarkAsRead(n._id);
+                    navigate(resolveNotificationTarget(n, 'admin'));
+                  }}
                 >
                   <div className={`${styles.iconWrap} ${colorClass}`}>
                     <Icon size={18} />

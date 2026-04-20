@@ -87,6 +87,11 @@ const doctorService = {
     return response.data;
   },
 
+  async rescheduleAppointmentByDoctor(id, data) {
+    const response = await API.put(`/appointments/${id}/reschedule-by-doctor`, data);
+    return response.data;
+  },
+
   // Patients (derived from appointments)
   async getPatients() {
     const response = await API.get('/appointments');

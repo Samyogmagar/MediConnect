@@ -84,7 +84,7 @@
 }
 
 .starIcon {
-  color: #f59e0b;
+  color: var(--status-pending-text);
 }
 
 .rating {
@@ -99,7 +99,7 @@
 
 .availability {
   font-size: 0.813rem;
-  color: var(--color-success);
+  color: var(--status-active-text);
   font-weight: 500;
   margin: 0 0 0.25rem;
 }
@@ -109,4 +109,9 @@
   font-weight: 700;
   color: var(--color-text-primary);
   margin: 0 0 1rem;
+}
+
+.actions {
+  display: grid;
+  gap: 0.5rem;
 }

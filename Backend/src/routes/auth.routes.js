@@ -2,6 +2,7 @@ import express from 'express';
 import authController from '../controllers/auth.controller.js';
 import authMiddleware from '../middlewares/auth.middleware.js';
 import roleMiddleware from '../middlewares/role.middleware.js';
+import { profilePhotoUpload } from '../middlewares/profilePhotoUpload.middleware.js';
 import { ROLES } from '../constants/roles.js';
 
 const router = express.Router();
@@ -30,6 +31,51 @@ router.post('/register', authController.register);
 router.post('/login', authController.login);
 
 /**
+ * @route   GET /api/auth/oauth/providers
+ * @desc    List social auth providers and availability state
+ * @access  Public
+ */
+router.get('/oauth/providers', authController.getSocialProviders);
+
+/**
+ * @route   GET /api/auth/oauth/:provider/start
+ * @desc    Get social auth provider availability (patient flow)
+ * @access  Public
+ */
+router.get('/oauth/:provider/start', authController.getSocialProviderStart);
+
+/**
+ * @route   POST /api/auth/oauth/:provider/complete
+ * @desc    Complete social auth flow with code + state (patient flow)
+ * @access  Public
+ */
+router.post('/oauth/:provider/complete', authController.completeSocialProviderAuth);
+
+/**
+ * @route   POST /api/auth/forgot-password
+ * @desc    Request password reset OTP
+ * @access  Public
+ * @body    { email }
+ */
+router.post('/forgot-password', authController.forgotPassword);
+
+/**
+ * @route   POST /api/auth/verify-reset-otp
+ * @desc    Verify password reset OTP
+ * @access  Public
+ * @body    { email, otp }
+ */
+router.post('/verify-reset-otp', authController.verifyResetOtp);
+
+/**
+ * @route   POST /api/auth/reset-password
+ * @desc    Reset password using email and OTP
+ * @access  Public
+ * @body    { email, otp, newPassword, confirmPassword }
+ */
+router.post('/reset-password', authController.resetPassword);
+
+/**
  * @route   POST /api/auth/logout
  * @desc    Logout user (clears auth cookie)
  * @access  Public
@@ -51,6 +97,25 @@ router.get('/me', authMiddleware, authController.me);
  * @access  Private
  */
 router.put('/profile', authMiddleware, authController.updateProfile);
+
+/**
+ * @route   PUT /api/auth/profile/photo
+ * @desc    Upload/update user profile photo
+ * @access  Private
+ */
+router.put(
+  '/profile/photo',
+  authMiddleware,
+  profilePhotoUpload.single('photo'),
+  authController.updateProfilePhoto
+);
+
+/**
+ * @route   DELETE /api/auth/profile/photo
+ * @desc    Remove user profile photo
+ * @access  Private
+ */
+router.delete('/profile/photo', authMiddleware, authController.removeProfilePhoto);
 
 /**
  * @route   PUT /api/auth/change-password

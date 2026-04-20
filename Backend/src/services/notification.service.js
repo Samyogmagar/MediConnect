@@ -2,6 +2,9 @@ import Notification from '../models/Notification.model.js';
 import User from '../models/User.model.js';
 import MESSAGES from '../constants/messages.js';
 import { ROLES } from '../constants/roles.js';
+import emailService from './email.service.js';
+import pushService from './push.service.js';
+import env from '../config/env.js';
 
 /**
  * Notification Service
@@ -12,6 +15,120 @@ class NotificationService {
     if (!value) return value;
     if (typeof value === 'object' && value._id) return value._id;
     return value;
+  }
+
+  _getPreferenceKeyForType(type) {
+    if (!type) return 'system';
+    if (type.startsWith('appointment_')) {
+      return type.includes('cancelled') || type.includes('rejected') || type.includes('rescheduled')
+        ? 'cancellations'
+        : 'appointments';
+    }
+    if (type.startsWith('diagnostic_')) return 'labReports';
+    if (type.startsWith('medication_')) {
+      return type === 'medication_reminder' ? 'medicationReminders' : 'prescriptions';
+    }
+    if (type.startsWith('prescription_')) return 'prescriptions';
+    if (type.startsWith('follow_up_')) return 'followUps';
+    return 'system';
+  }
+
+  _isEventEnabled(user, type) {
+    const prefs = user?.notificationPreferences || {};
+    const key = this._getPreferenceKeyForType(type);
+    if (typeof prefs[key] === 'boolean') return prefs[key];
+    return true;
+  }
+
+  _shouldSendEmail(user, type, priority, channels) {
+    const channelPrefs = user?.notificationPreferences?.channels || {};
+    if (channelPrefs.email === false) return false;
+    if (channels?.email === true) return true;
+
+    // Prevent spam: only important updates are emailed by default.
+    const importantTypes = new Set([
+      'appointment_confirmed',
+      'appointment_cancelled',
+      'appointment_rejected',
+      'appointment_rescheduled',
+      'diagnostic_report_uploaded',
+      'prescription_issued',
+      'medication_prescribed',
+      'medication_reminder',
+      'follow_up_reminder',
+      'account_verified',
+    ]);
+
+    return importantTypes.has(type) || ['high', 'urgent'].includes(priority);
+  }
+
+  _resolveActionUrl(actionUrl) {
+    if (!actionUrl) return null;
+    if (actionUrl.startsWith('http://') || actionUrl.startsWith('https://')) return actionUrl;
+    return `${env.FRONTEND_URL}${actionUrl}`;
+  }
+
+  async _sendPushNotifications(user, notificationPayload) {
+    if (!pushService.isReady()) {
+      return {
+        sentCount: 0,
+        failedCount: 0,
+        skipped: true,
+        reason: 'vapid_not_configured',
+      };
+    }
+
+    const subscriptions = user.pushSubscriptions || [];
+    if (!subscriptions.length) {
+      return {
+        sentCount: 0,
+        failedCount: 0,
+        skipped: true,
+        reason: 'no_subscriptions',
+      };
+    }
+
+    let sentCount = 0;
+    let failedCount = 0;
+    const expiredEndpoints = [];
+
+    for (const sub of subscriptions) {
+      const result = await pushService.sendNotification(
+        {
+          endpoint: sub.endpoint,
+          keys: {
+            p256dh: sub.keys?.p256dh,
+            auth: sub.keys?.auth,
+          },
+        },
+        notificationPayload
+      );
+
+      if (result.sent) {
+        sentCount += 1;
+      } else {
+        failedCount += 1;
+        if (result.isExpired) {
+          expiredEndpoints.push(sub.endpoint);
+        }
+      }
+    }
+
+    if (expiredEndpoints.length) {
+      user.pushSubscriptions = subscriptions.filter(
+        (sub) => !expiredEndpoints.includes(sub.endpoint)
+      );
+      if (!user.pushSubscriptions.length && user.notificationPreferences?.channels) {
+        user.notificationPreferences.channels.push = false;
+      }
+      await user.save();
+    }
+
+    return {
+      sentCount,
+      failedCount,
+      skipped: false,
+    };
   }
 
   /**
@@ -36,6 +153,7 @@ class NotificationService {
       actionLabel,
       metadata,
       expiresAt,
+      channels,
     } = notificationData;
 
     const resolvedRecipientId = recipientId || userId;
@@ -49,24 +167,101 @@ class NotificationService {
       throw new Error(MESSAGES.USER.NOT_FOUND);
     }
 
-    // Create notification
-    const notification = await Notification.create({
-      userId: resolvedRecipientId,
-      recipientId: resolvedRecipientId,
-      senderId,
-      type: resolvedType,
-      notificationType: resolvedType,
-      title,
-      message,
-      priority,
-      relatedResource,
-      referenceId: resolvedReferenceId,
-      referenceModel: resolvedReferenceModel,
-      actionUrl,
-      actionLabel,
-      metadata,
-      expiresAt,
-    });
+    if (!this._isEventEnabled(user, resolvedType)) {
+      return null;
+    }
+
+    const channelPreferences = user.notificationPreferences?.channels || {};
+    const resolvedChannels = {
+      inApp: channels?.inApp ?? channelPreferences.inApp ?? true,
+      email: this._shouldSendEmail(user, resolvedType, priority, channels),
+      push: channels?.push ?? channelPreferences.push ?? false,
+    };
+
+    let notification = null;
+
+    if (resolvedChannels.inApp) {
+      notification = await Notification.create({
+        userId: resolvedRecipientId,
+        recipientId: resolvedRecipientId,
+        senderId,
+        type: resolvedType,
+        notificationType: resolvedType,
+        title,
+        message,
+        priority,
+        relatedResource,
+        referenceId: resolvedReferenceId,
+        referenceModel: resolvedReferenceModel,
+        actionUrl,
+        actionLabel,
+        metadata,
+        expiresAt,
+        channels: resolvedChannels,
+        delivery: {
+          email: {
+            status: resolvedChannels.email ? 'pending' : 'skipped',
+          },
+          push: {
+            status: resolvedChannels.push ? 'pending' : 'skipped',
+          },
+        },
+      });
+    }
+
+    if (resolvedChannels.email && user.email) {
+      try {
+        await emailService.sendNotificationEmail({
+          to: user.email,
+          subject: `[MediConnect] ${title}`,
+          title,
+          message,
+          actionUrl: this._resolveActionUrl(actionUrl),
+          actionLabel,
+        });
+
+        if (notification) {
+          notification.delivery.email.status = 'sent';
+          notification.delivery.email.lastAttemptAt = new Date();
+          await notification.save();
+        }
+      } catch (error) {
+        if (notification) {
+          notification.delivery.email.status = 'failed';
+          notification.delivery.email.error = error.message;
+          notification.delivery.email.lastAttemptAt = new Date();
+          await notification.save();
+        }
+      }
+    }
+
+    if (resolvedChannels.push) {
+      const pushResult = await this._sendPushNotifications(user, {
+        title,
+        message,
+        actionUrl: this._resolveActionUrl(actionUrl),
+        actionLabel,
+        type: resolvedType,
+        priority,
+      });
+
+      if (notification) {
+        notification.delivery.push.lastAttemptAt = new Date();
+
+        if (pushResult.skipped) {
+          notification.delivery.push.status = 'skipped';
+          notification.delivery.push.error = pushResult.reason;
+        } else if (pushResult.sentCount > 0) {
+          notification.delivery.push.status = 'sent';
+          notification.delivery.push.error = undefined;
+        } else {
+          notification.delivery.push.status = 'failed';
+          notification.delivery.push.error = 'push_delivery_failed';
+        }
+
+        await notification.save();
+      }
+    }
 
     return notification;
   }
@@ -81,22 +276,12 @@ class NotificationService {
       return [];
     }
 
-    const normalizedPayload = notificationDataArray.map((item) => {
-      const resolvedRecipientId = item.recipientId || item.userId;
-      const resolvedType = item.notificationType || item.type;
+    const notifications = [];
+    for (const item of notificationDataArray) {
+      const created = await this.createNotification(item);
+      if (created) notifications.push(created);
+    }
 
-      return {
-        ...item,
-        userId: resolvedRecipientId,
-        recipientId: resolvedRecipientId,
-        type: resolvedType,
-        notificationType: resolvedType,
-        referenceId: item.referenceId || item.relatedResource?.resourceId,
-        referenceModel: item.referenceModel || item.relatedResource?.resourceType,
-      };
-    });
-
-    const notifications = await Notification.insertMany(normalizedPayload);
     return notifications;
   }
 
@@ -285,6 +470,180 @@ class NotificationService {
     return deletedCount;
   }
 
+  /**
+   * Get user notification preferences and push subscription status.
+   */
+  async getPreferences(userId) {
+    const user = await User.findById(userId).select('notificationPreferences pushSubscriptions');
+    if (!user) {
+      throw new Error(MESSAGES.USER.NOT_FOUND);
+    }
+
+    return {
+      notificationPreferences: user.notificationPreferences || {},
+      pushSubscriptions: user.pushSubscriptions || [],
+      hasPushSubscriptions: Boolean(user.pushSubscriptions?.length),
+    };
+  }
+
+  /**
+   * Update user notification preferences.
+   */
+  async updatePreferences(userId, updates = {}) {
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new Error(MESSAGES.USER.NOT_FOUND);
+    }
+
+    const allowedTopLevel = [
+      'appointments',
+      'cancellations',
+      'prescriptions',
+      'labReports',
+      'medicationReminders',
+      'followUps',
+      'system',
+    ];
+
+    if (!user.notificationPreferences) {
+      user.notificationPreferences = {};
+    }
+
+    allowedTopLevel.forEach((key) => {
+      if (typeof updates[key] === 'boolean') {
+        user.notificationPreferences[key] = updates[key];
+      }
+    });
+
+    if (updates.channels && typeof updates.channels === 'object') {
+      const channels = user.notificationPreferences.channels || {};
+      ['inApp', 'email', 'push'].forEach((channelKey) => {
+        if (typeof updates.channels[channelKey] === 'boolean') {
+          channels[channelKey] = updates.channels[channelKey];
+        }
+      });
+      user.notificationPreferences.channels = channels;
+    }
+
+    await user.save();
+
+    return {
+      notificationPreferences: user.notificationPreferences,
+    };
+  }
+
+  /**
+   * Save or refresh push subscription for the current user/device.
+   */
+  async savePushSubscription(userId, subscription, meta = {}) {
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new Error(MESSAGES.USER.NOT_FOUND);
+    }
+
+    if (!subscription?.endpoint) {
+      throw new Error(MESSAGES.NOTIFICATION.PUSH_ENDPOINT_REQUIRED);
+    }
+
+    const existingIndex = (user.pushSubscriptions || []).findIndex(
+      (item) => item.endpoint === subscription.endpoint
+    );
+
+    const normalized = {
+      endpoint: subscription.endpoint,
+      keys: {
+        p256dh: subscription.keys?.p256dh,
+        auth: subscription.keys?.auth,
+      },
+      userAgent: meta.userAgent,
+      deviceLabel: meta.deviceLabel,
+      lastSeenAt: new Date(),
+    };
+
+    if (existingIndex >= 0) {
+      user.pushSubscriptions[existingIndex] = {
+        ...user.pushSubscriptions[existingIndex].toObject(),
+        ...normalized,
+      };
+    } else {
+      user.pushSubscriptions.push(normalized);
+    }
+
+    if (!user.notificationPreferences) {
+      user.notificationPreferences = {};
+    }
+    user.notificationPreferences.channels = {
+      ...(user.notificationPreferences.channels || {}),
+      push: true,
+    };
+
+    await user.save();
+
+    return {
+      subscriptions: user.pushSubscriptions,
+      count: user.pushSubscriptions.length,
+    };
+  }
+
+  /**
+   * Remove push subscription by endpoint.
+   */
+  async removePushSubscription(userId, endpoint) {
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new Error(MESSAGES.USER.NOT_FOUND);
+    }
+
+    if (!endpoint) {
+      throw new Error(MESSAGES.NOTIFICATION.PUSH_ENDPOINT_REQUIRED);
+    }
+
+    user.pushSubscriptions = (user.pushSubscriptions || []).filter(
+      (item) => item.endpoint !== endpoint
+    );
+
+    if (user.pushSubscriptions.length === 0 && user.notificationPreferences?.channels) {
+      user.notificationPreferences.channels.push = false;
+    }
+
+    await user.save();
+
+    return {
+      subscriptions: user.pushSubscriptions,
+      count: user.pushSubscriptions.length,
+    };
+  }
+
+  /**
+   * Send a test push notification to the authenticated user's active subscriptions.
+   */
+  async sendTestPush(userId, payload = {}) {
+    const user = await User.findById(userId).select('notificationPreferences pushSubscriptions');
+    if (!user) {
+      throw new Error(MESSAGES.USER.NOT_FOUND);
+    }
+
+    const title = payload.title || 'MediConnect Test Notification';
+    const message = payload.message || 'Push delivery is working for this device.';
+    const actionUrl = this._resolveActionUrl(payload.actionUrl || '/notifications');
+
+    const result = await this._sendPushNotifications(user, {
+      title,
+      message,
+      actionUrl,
+      actionLabel: payload.actionLabel || 'Open MediConnect',
+      type: 'system_message',
+      priority: 'normal',
+    });
+
+    return {
+      ...result,
+      title,
+      message,
+      actionUrl,
+    };
+  }
+
   // ===== SPECIFIC NOTIFICATION CREATORS =====
 
   /**
@@ -297,7 +656,7 @@ class NotificationService {
       {
         userId: patientId,
         type: 'appointment_created',
-        title: 'Appointment Request Created',
+        title: 'Appointment Booking Successful',
         message: `Your appointment request for ${new Date(dateTime).toLocaleString('en-GB', { 
           dateStyle: 'medium', 
           timeStyle: 'short' 
@@ -310,6 +669,9 @@ class NotificationService {
         actionUrl: `/appointments/${appointmentData._id}`,
         actionLabel: 'View Appointment',
         metadata: { dateTime, reason },
+        channels: {
+          email: true,
+        },
       },
       {
         userId: doctorId,
@@ -418,6 +780,39 @@ class NotificationService {
       actionUrl: `/appointments/${appointmentData._id}`,
       actionLabel: 'View Details',
       metadata: { notes },
+    });
+  }
+
+  async notifyAppointmentRescheduled(appointmentData, previousDateTime, rescheduledBy, reason = '') {
+    const { patientId, doctorId, dateTime } = appointmentData;
+    const isByDoctor = rescheduledBy === doctorId.toString();
+    const recipientId = isByDoctor ? patientId : doctorId;
+
+    const message = `Appointment moved from ${new Date(previousDateTime).toLocaleString('en-GB', {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    })} to ${new Date(dateTime).toLocaleString('en-GB', {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    })}.${reason ? ` Reason: ${reason}` : ''}`;
+
+    await this.createNotification({
+      userId: recipientId,
+      type: 'appointment_rescheduled',
+      title: 'Appointment Rescheduled',
+      message,
+      priority: 'high',
+      relatedResource: {
+        resourceType: 'Appointment',
+        resourceId: appointmentData._id,
+      },
+      actionUrl: `/appointments/${appointmentData._id}`,
+      actionLabel: 'View Appointment',
+      metadata: {
+        previousDateTime,
+        newDateTime: dateTime,
+        reason,
+      },
     });
   }
 

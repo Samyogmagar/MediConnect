@@ -1,12 +1,15 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Bell, CheckCheck, Trash2 } from 'lucide-react';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import NotificationItem from '../../components/patient/NotificationItem';
 import Button from '../../components/common/Button';
 import notificationService from '../../services/notificationService';
+import { resolveNotificationTarget } from '../../utils/notificationTarget.util';
 import styles from './Notifications.module.css';
 
 const Notifications = () => {
+  const navigate = useNavigate();
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -78,6 +81,10 @@ const Notifications = () => {
   const displayed =
     filter === 'unread' ? notifications.filter((n) => !n.isRead) : notifications;
 
+  const handleNotificationClick = (notification) => {
+    navigate(resolveNotificationTarget(notification, 'patient'));
+  };
+
   return (
     <DashboardLayout>
       <div className={styles.page}>
@@ -135,6 +142,7 @@ const Notifications = () => {
                 <NotificationItem
                   notification={notification}
                   onMarkRead={handleMarkAsRead}
+                  onClick={handleNotificationClick}
                 />
                 <button
                   className={styles.deleteBtn}

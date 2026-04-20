@@ -10,9 +10,13 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
+  User,
+  Heart,
 } from 'lucide-react';
 import useAuth from '../../hooks/useAuth';
+import useSidebarResize from '../../hooks/useSidebarResize';
 import notificationService from '../../services/notificationService';
+import NotificationDropdown from '../common/NotificationDropdown';
 import styles from './DoctorLayout.module.css';
 
 const DoctorLayout = ({ children }) => {
@@ -22,6 +26,11 @@ const DoctorLayout = ({ children }) => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const { sidebarWidth, onResizeHandleMouseDown } = useSidebarResize({
+    minWidth: 220,
+    maxWidth: 340,
+    defaultWidth: 240,
+  });
 
   const fetchUnreadCount = async () => {
     try {
@@ -54,58 +63,83 @@ const DoctorLayout = ({ children }) => {
     navigate('/login');
   };
 
-  const navLinks = [
-    { to: '/doctor/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-    { to: '/doctor/appointments', icon: Calendar, label: 'Appointments' },
-    { to: '/doctor/availability', icon: Calendar, label: 'Availability' },
-    { to: '/doctor/patients', icon: Users, label: 'Patients' },
-    { to: '/doctor/prescriptions', icon: Pill, label: 'Prescriptions' },
-    { to: '/doctor/notifications', icon: Bell, label: 'Notifications' },
+  const navSections = [
+    {
+      title: 'Practice',
+      links: [
+        { to: '/doctor/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+        { to: '/doctor/appointments', icon: Calendar, label: 'Appointments' },
+        { to: '/doctor/availability', icon: Calendar, label: 'Availability' },
+      ],
+    },
+    {
+      title: 'Clinical',
+      links: [
+        { to: '/doctor/patients', icon: Users, label: 'Patients' },
+        { to: '/doctor/prescriptions', icon: Pill, label: 'Prescriptions' },
+      ],
+    },
+    {
+      title: 'Account',
+      links: [
+        { to: '/doctor/profile', icon: User, label: 'Profile' },
+        { to: '/doctor/notifications', icon: Bell, label: 'Notifications' },
+        { to: '/doctor/settings', icon: Settings, label: 'Settings' },
+      ],
+    },
   ];
 
   return (
-    <div className={styles.layout}>
+    <div className={styles.layout} style={{ '--sidebar-width': `${sidebarWidth}px` }}>
       {/* Sidebar */}
       <aside className={`${styles.sidebar} ${sidebarCollapsed ? styles.collapsed : ''}`}>
         <div className={styles.sidebarHeader}>
           <div className={styles.logo}>
+            <Heart size={24} className={styles.logoIcon} />
             {!sidebarCollapsed && <span className={styles.logoText}>MediConnect</span>}
             <span className={styles.logoBadge}>Doctor</span>
           </div>
         </div>
 
         <nav className={styles.nav}>
-          {navLinks.map((link) => (
-            <NavLink
-              key={link.to}
-              to={link.to}
-              className={({ isActive }) =>
-                `${styles.navLink} ${isActive ? styles.active : ''}`
-              }
-              title={sidebarCollapsed ? link.label : ''}
-            >
-              <link.icon size={20} />
-              {!sidebarCollapsed && <span>{link.label}</span>}
-            </NavLink>
+          {navSections.map((section) => (
+            <div className={styles.navSection} key={section.title}>
+              {!sidebarCollapsed && <p className={styles.navSectionTitle}>{section.title}</p>}
+              <div className={styles.navSectionList}>
+                {section.links.map((link) => (
+                  <NavLink
+                    key={link.to}
+                    to={link.to}
+                    className={({ isActive }) =>
+                      `${styles.navLink} ${isActive ? styles.active : ''}`
+                    }
+                    title={sidebarCollapsed ? link.label : ''}
+                  >
+                    <link.icon size={20} />
+                    {!sidebarCollapsed && <span>{link.label}</span>}
+                  </NavLink>
+                ))}
+              </div>
+            </div>
           ))}
         </nav>
 
         <div className={styles.sidebarFooter}>
-          <NavLink 
-            to="/doctor/settings"
-            className={({ isActive }) =>
-              `${styles.navLink} ${isActive ? styles.active : ''}`
-            }
-            title="Settings"
-          >
-            <Settings size={20} />
-            {!sidebarCollapsed && <span>Settings</span>}
-          </NavLink>
           <button className={`${styles.navLink} ${styles.logoutBtn}`} onClick={handleLogout} title="Logout">
             <LogOut size={20} />
             {!sidebarCollapsed && <span>Logout</span>}
           </button>
         </div>
+
+        {!sidebarCollapsed && (
+          <div
+            className={styles.resizeHandle}
+            onMouseDown={onResizeHandleMouseDown}
+            role="separator"
+            aria-orientation="vertical"
+            aria-label="Resize sidebar"
+          />
+        )}
 
         <button
           className={styles.collapseBtn}
@@ -124,14 +158,11 @@ const DoctorLayout = ({ children }) => {
             <h2 className={styles.greeting}>Welcome, Dr. {user?.name}</h2>
           </div>
           <div className={styles.navbarRight}>
-            <button
-              className={styles.notifBtn}
-              title="Notifications"
-              onClick={() => navigate('/doctor/notifications')}
-            >
-              <Bell size={20} />
-              {unreadCount > 0 && <span className={styles.badge}>{unreadCount}</span>}
-            </button>
+            <NotificationDropdown
+              role="doctor"
+              unreadCount={unreadCount}
+              onUnreadCountChange={setUnreadCount}
+            />
 
             <div className={styles.userMenu}>
               <button
@@ -139,8 +170,8 @@ const DoctorLayout = ({ children }) => {
                 onClick={() => setShowUserMenu(!showUserMenu)}
               >
                 <div className={styles.userAvatar}>
-                  {user?.profilePicture ? (
-                    <img src={user.profilePicture} alt={user.name} />
+                  {user?.profileImageUrl || user?.profilePicture ? (
+                    <img src={user.profileImageUrl || user.profilePicture} alt={user.name} />
                   ) : (
                     <span>{user?.name?.charAt(0)}</span>
                   )}
@@ -150,6 +181,9 @@ const DoctorLayout = ({ children }) => {
 
               {showUserMenu && (
                 <div className={styles.dropdown}>
+                  <button onClick={() => navigate('/doctor/profile')}>
+                    <User size={16} /> Profile
+                  </button>
                   <button onClick={handleLogout}>
                     <LogOut size={16} /> Logout
                   </button>

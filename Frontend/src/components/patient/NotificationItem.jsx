@@ -26,7 +26,7 @@ const typeConfig = {
   system_message: { icon: BellIcon, color: '#64748b', bg: '#f8fafc' },
 };
 
-const NotificationItem = ({ notification, onMarkRead }) => {
+const NotificationItem = ({ notification, onMarkRead, onClick }) => {
   const config = typeConfig[notification.type] || typeConfig.system_message;
   const Icon = config.icon;
 
@@ -38,6 +38,9 @@ const NotificationItem = ({ notification, onMarkRead }) => {
       onClick={() => {
         if (!notification.isRead && onMarkRead) {
           onMarkRead(notification._id);
+        }
+        if (onClick) {
+          onClick(notification);
         }
       }}
     >

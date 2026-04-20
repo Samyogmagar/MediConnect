@@ -1,6 +1,6 @@
-.panel {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
+﻿.panel {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 16px;
   padding: 1.5rem;
   box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
@@ -20,19 +20,19 @@
   margin: 0;
   font-size: 1.1rem;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--color-text-primary);
 }
 
 .subtitle {
   margin: 0.35rem 0 0;
   font-size: 0.85rem;
-  color: #64748b;
+  color: var(--color-text-secondary);
 }
 
 .viewLink {
   font-size: 0.8rem;
   font-weight: 600;
-  color: #1d4ed8;
+  color: var(--color-primary-dark);
   text-decoration: none;
 }
 
@@ -42,27 +42,34 @@
   gap: 0.75rem;
 }
 
+.errorText {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--layout-danger-text);
+  font-weight: 600;
+}
+
 .dropZone {
   display: flex;
   align-items: center;
   gap: 0.75rem;
   padding: 1rem;
-  border: 1px dashed #94a3b8;
+  border: 1px dashed var(--color-text-muted);
   border-radius: 12px;
-  background: #f8fafc;
+  background: var(--color-surface-alt);
   cursor: pointer;
 }
 
 .dropTitle {
   display: block;
   font-weight: 600;
-  color: #0f172a;
+  color: var(--color-text-primary);
 }
 
 .dropHint {
   display: block;
   font-size: 0.8rem;
-  color: #94a3b8;
+  color: var(--color-text-muted);
 }
 
 .hiddenInput {
@@ -73,8 +80,8 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  background: #ecfdf3;
-  border: 1px solid #a7f3d0;
+  background: var(--status-active-bg);
+  border: 1px solid var(--status-active-border);
   border-radius: 10px;
   padding: 0.75rem 1rem;
 }
@@ -83,20 +90,20 @@
   margin: 0;
   font-size: 0.85rem;
   font-weight: 600;
-  color: #0f172a;
+  color: var(--color-text-primary);
 }
 
 .fileMeta {
   margin: 0.15rem 0 0;
   font-size: 0.75rem;
-  color: #64748b;
+  color: var(--color-text-secondary);
 }
 
 .removeBtn {
   margin-left: auto;
   border: none;
-  background: #fee2e2;
-  color: #dc2626;
+  background: var(--layout-danger-bg);
+  color: var(--layout-danger-text);
   border-radius: 6px;
   padding: 0.3rem 0.4rem;
   cursor: pointer;
@@ -111,11 +118,11 @@
 .label {
   font-size: 0.8rem;
   font-weight: 600;
-  color: #0f172a;
+  color: var(--color-text-primary);
 }
 
 .textarea {
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--color-border);
   border-radius: 10px;
   padding: 0.75rem;
   font-size: 0.85rem;
@@ -130,7 +137,7 @@
 
 .submitBtn {
   flex: 1;
-  background: #0f766e;
+  background: var(--color-primary);
   color: #ffffff;
   border: none;
   border-radius: 10px;
@@ -140,11 +147,12 @@
 }
 
 .clearBtn {
-  background: #ffffff;
-  color: #475569;
-  border: 1px solid #e2e8f0;
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
   border-radius: 10px;
   padding: 0.85rem;
   font-weight: 600;
   cursor: pointer;
 }
+

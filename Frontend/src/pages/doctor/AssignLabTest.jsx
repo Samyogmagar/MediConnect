@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -7,16 +7,19 @@ import {
   Mail,
   Droplet,
   Calendar,
-  Upload,
   FileText,
   Clock,
   AlertCircle,
   Zap,
-  X,
+  Search,
   CheckCircle,
+  Filter,
 } from 'lucide-react';
 import DoctorLayout from '../../components/doctor/DoctorLayout';
 import doctorService from '../../services/doctorService';
+import { resolveAssetUrl } from '../../utils/assetUrl.util';
+import { normalizeDiagnosticStatus } from '../../utils/doctorWorkflowStatus.util';
+import { useModal } from '../../components/common/feedback/ModalProvider';
 import styles from './AssignLabTest.module.css';
 
 const TEST_TYPES = [
@@ -48,6 +51,7 @@ const AssignLabTest = () => {
   const patientId = searchParams.get('patientId');
 
   const [patient] = useState(patientFromState || null);
+  const { showConfirm } = useModal();
   const [labs, setLabs] = useState([]);
   const [appointments, setAppointments] = useState([]);
   const [previousTests, setPreviousTests] = useState([]);
@@ -55,6 +59,8 @@ const AssignLabTest = () => {
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
 
   const [form, setForm] = useState({
     labId: '',
@@ -169,7 +175,7 @@ const AssignLabTest = () => {
   };
 
   const getStatusClass = (status) => {
-    switch (status) {
+    switch (normalizeDiagnosticStatus(status)) {
       case 'report_uploaded': return styles.statusCompleted;
       case 'processing': return styles.statusProgress;
       case 'sample_collected': return styles.statusPending;
@@ -179,12 +185,46 @@ const AssignLabTest = () => {
   };
 
   const getStatusLabel = (status) => {
-    switch (status) {
+    switch (normalizeDiagnosticStatus(status)) {
       case 'sample_collected': return 'Sample Collected';
       case 'processing': return 'Processing';
       case 'report_uploaded': return 'Report Uploaded';
       case 'cancelled': return 'Cancelled';
       default: return 'Assigned';
+    }
+  };
+
+  const canCancelDiagnostic = (status) => {
+    const normalized = normalizeDiagnosticStatus(status);
+    return ['assigned', 'sample_collected', 'processing'].includes(normalized);
+  };
+
+  const handleCancelDiagnostic = async (testId, testName) => {
+    const { confirmed, inputValue } = await showConfirm({
+      title: 'Cancel assigned test?',
+      message: `Provide a reason to cancel ${testName || 'this test'}.`,
+      confirmText: 'Cancel Test',
+      cancelText: 'Keep Test',
+      confirmVariant: 'danger',
+      inputConfig: {
+        type: 'textarea',
+        label: 'Cancellation reason',
+        placeholder: 'Explain why this test is being cancelled',
+        required: true,
+        requiredMessage: 'Cancellation reason is required.',
+      },
+    });
+    if (!confirmed) return;
+
+    try {
+      await doctorService.cancelDiagnosticTest(testId, inputValue);
+      setSuccess('Diagnostic test cancelled successfully.');
+      const testsRes = await doctorService.getPatientDiagnosticTests(patientId);
+      setPreviousTests(testsRes?.data?.tests || []);
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (err) {
+      console.error('Error cancelling diagnostic test:', err);
+      setError(err.response?.data?.message || 'Failed to cancel diagnostic test.');
     }
   };
 
@@ -201,6 +241,40 @@ const AssignLabTest = () => {
 
   const age = patient ? getAge(patient.dateOfBirth) : null;
   const bloodType = patient?.bloodType || patient?.bloodGroup || null;
+
+  const statusOptions = useMemo(
+    () => [
+      { value: 'all', label: 'All Statuses' },
+      { value: 'assigned', label: 'Assigned' },
+      { value: 'sample_collected', label: 'Sample Collected' },
+      { value: 'processing', label: 'Processing' },
+      { value: 'report_uploaded', label: 'Report Uploaded' },
+      { value: 'cancelled', label: 'Cancelled' },
+    ],
+    []
+  );
+
+  const filteredTests = useMemo(() => {
+    const normalizedSearch = searchQuery.trim().toLowerCase();
+    return previousTests.filter((test) => {
+      const normalizedStatus = normalizeDiagnosticStatus(test.status);
+      const matchesStatus = statusFilter === 'all' || normalizedStatus === statusFilter;
+      if (!matchesStatus) return false;
+      if (!normalizedSearch) return true;
+
+      const fields = [
+        test.testName,
+        test.testType,
+        test.labId?.name,
+        test.urgency,
+        (test._id || '').slice(-6),
+      ]
+        .filter(Boolean)
+        .map((value) => String(value).toLowerCase());
+
+      return fields.some((field) => field.includes(normalizedSearch));
+    });
+  }, [previousTests, searchQuery, statusFilter]);
 
   return (
     <DoctorLayout>
@@ -450,6 +524,27 @@ const AssignLabTest = () => {
             {previousTests.length > 0 && (
               <div className={styles.previousSection}>
                 <h3 className={styles.previousTitle}>Previously Assigned Tests</h3>
+                <div className={styles.toolbar}>
+                  <div className={styles.searchBox}>
+                    <Search size={15} />
+                    <input
+                      type="text"
+                      placeholder="Search by test name, type, lab, urgency, or test ID"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                  </div>
+                  <div className={styles.filterBox}>
+                    <Filter size={15} />
+                    <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+                      {statusOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
                 <div className={styles.tableWrapper}>
                   <table className={styles.table}>
                     <thead>
@@ -457,19 +552,23 @@ const AssignLabTest = () => {
                         <th>Test ID</th>
                         <th>Test Name</th>
                         <th>Category</th>
+                        <th>Lab</th>
+                        <th>Urgency</th>
                         <th>Status</th>
                         <th>Assigned Date</th>
-                        <th>Report</th>
+                        <th>Actions</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {previousTests.map((test) => (
+                      {filteredTests.map((test) => (
                         <tr key={test._id}>
                           <td className={styles.testId}>
                             #{(test._id || '').slice(-6).toUpperCase()}
                           </td>
                           <td>{test.testName}</td>
                           <td>{test.testType}</td>
+                          <td>{test.labId?.name || 'Unassigned'}</td>
+                          <td>{test.urgency || 'routine'}</td>
                           <td>
                             <span className={`${styles.statusBadge} ${getStatusClass(test.status)}`}>
                               {getStatusLabel(test.status)}
@@ -477,21 +576,39 @@ const AssignLabTest = () => {
                           </td>
                           <td>{formatDate(test.assignedAt || test.createdAt)}</td>
                           <td>
-                            {test.report?.url ? (
-                              <a
-                                href={test.report.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className={styles.reportLink}
-                              >
-                                View Report
-                              </a>
-                            ) : (
-                              <span className={styles.noReport}>Pending</span>
-                            )}
+                            <div className={styles.actionCell}>
+                              {test.report?.url ? (
+                                <a
+                                  href={resolveAssetUrl(test.report.url)}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className={styles.reportLink}
+                                >
+                                  View Report
+                                </a>
+                              ) : (
+                                <span className={styles.noReport}>Pending</span>
+                              )}
+                              {canCancelDiagnostic(test.status) && (
+                                <button
+                                  type="button"
+                                  className={styles.cancelTestBtn}
+                                  onClick={() => handleCancelDiagnostic(test._id, test.testName || 'this test')}
+                                >
+                                  Cancel
+                                </button>
+                              )}
+                            </div>
                           </td>
                         </tr>
                       ))}
+                      {filteredTests.length === 0 && (
+                        <tr>
+                          <td className={styles.emptyRow} colSpan={8}>
+                            No assigned tests match the selected filters.
+                          </td>
+                        </tr>
+                      )}
                     </tbody>
                   </table>
                 </div>

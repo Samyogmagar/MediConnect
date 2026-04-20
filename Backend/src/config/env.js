@@ -1,6 +1,23 @@
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-dotenv.config();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const backendRoot = path.resolve(__dirname, '../..');
+
+// Load production-first fallback chain from Backend root so env resolution
+// is stable regardless of process working directory.
+dotenv.config({ path: path.join(backendRoot, '.env.production') });
+dotenv.config({ path: path.join(backendRoot, '.env') });
+
+const parseBooleanEnv = (value, fallback = true) => {
+  if (value === undefined || value === null || String(value).trim() === '') {
+    return fallback;
+  }
+
+  return ['1', 'true', 'yes', 'on'].includes(String(value).trim().toLowerCase());
+};
 
 /**
  * Environment configuration with validation
@@ -33,6 +50,27 @@ const env = {
 
   // Billing defaults
   DEFAULT_CONSULTATION_FEE: parseInt(process.env.DEFAULT_CONSULTATION_FEE, 10) || 500,
+
+  // Email notifications (Resend)
+  RESEND_API_KEY: process.env.RESEND_API_KEY || '',
+  EMAIL_FROM: process.env.EMAIL_FROM || 'MediConnect <noreply@mediconnect.local>',
+
+  // Web Push (VAPID)
+  VAPID_PUBLIC_KEY: process.env.VAPID_PUBLIC_KEY || '',
+  VAPID_PRIVATE_KEY: process.env.VAPID_PRIVATE_KEY || '',
+  VAPID_SUBJECT: process.env.VAPID_SUBJECT || 'mailto:support@mediconnect.local',
+
+  // Social auth provider client IDs (patient flow only)
+  GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID || '',
+  GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET || '',
+  GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID || '',
+  GITHUB_CLIENT_SECRET: process.env.GITHUB_CLIENT_SECRET || '',
+  FACEBOOK_CLIENT_ID: process.env.FACEBOOK_CLIENT_ID || '',
+  FACEBOOK_CLIENT_SECRET: process.env.FACEBOOK_CLIENT_SECRET || '',
+  GOOGLE_AUTH_ENABLED: parseBooleanEnv(process.env.GOOGLE_AUTH_ENABLED, false),
+  GITHUB_AUTH_ENABLED: parseBooleanEnv(process.env.GITHUB_AUTH_ENABLED, false),
+  FACEBOOK_AUTH_ENABLED: parseBooleanEnv(process.env.FACEBOOK_AUTH_ENABLED, false),
+  OAUTH_CALLBACK_PATH: process.env.OAUTH_CALLBACK_PATH || '/auth/oauth/callback',
 };
 
 /**

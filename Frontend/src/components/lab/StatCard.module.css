@@ -41,18 +41,18 @@
 }
 
 .iconGreen {
-  background: #f0fdf4;
-  color: #16a34a;
+  background: var(--status-active-bg);
+  color: var(--status-active-text);
 }
 
 .iconRed {
-  background: #fef2f2;
-  color: #dc2626;
+  background: var(--status-cancelled-bg);
+  color: var(--status-cancelled-text);
 }
 
 .iconYellow {
-  background: #fef3c7;
-  color: #d97706;
+  background: var(--status-pending-bg);
+  color: var(--status-pending-text);
 }
 
 .iconTeal {
@@ -85,8 +85,8 @@
 .valueBlue { color: #0f172a; }
 .valueOrange { color: #ea580c; }
 .valuePurple { color: #7c3aed; }
-.valueGreen { color: #16a34a; }
-.valueRed { color: #dc2626; }
+.valueGreen { color: var(--status-active-text); }
+.valueRed { color: var(--status-cancelled-text); }
 .valueTeal { color: #0f172a; }
 
 .subtitle {
@@ -97,6 +97,6 @@
 .borderBlue { border-left: 3px solid #2563eb; }
 .borderOrange { border-left: 3px solid #ea580c; }
 .borderPurple { border-left: 3px solid #7c3aed; }
-.borderGreen { border-left: 3px solid #16a34a; }
-.borderRed { border-left: 3px solid #dc2626; }
+.borderGreen { border-left: 3px solid var(--status-active-text); }
+.borderRed { border-left: 3px solid var(--status-cancelled-text); }
 .borderTeal { border-left: 3px solid #0d9488; }

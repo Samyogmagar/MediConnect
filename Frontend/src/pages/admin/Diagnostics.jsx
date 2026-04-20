@@ -6,6 +6,7 @@ import StatCard from '../../components/admin/StatCard';
 import DataTable from '../../components/admin/DataTable';
 import StatusBadge from '../../components/admin/StatusBadge';
 import medicalRecordService from '../../services/medicalRecordService';
+import { resolveAssetUrl } from '../../utils/assetUrl.util';
 import styles from './Diagnostics.module.css';
 
 const Diagnostics = () => {
@@ -109,7 +110,7 @@ const Diagnostics = () => {
         const isComplete = (row.status || '').toLowerCase() === 'report_uploaded';
         if (isComplete && row.report?.url) {
           return (
-            <a href={row.report.url} target="_blank" rel="noreferrer" className={styles.reportLink}>
+            <a href={resolveAssetUrl(row.report.url)} target="_blank" rel="noreferrer" className={styles.reportLink}>
               <FileText size={14} /> View Report
             </a>
           );
@@ -251,7 +252,7 @@ const Diagnostics = () => {
                   <div className={styles.detailRow}>
                     <span className={styles.detailLabel}>Report</span>
                     <span className={styles.detailValue}>
-                      <a href={selectedTest.report.url} target="_blank" rel="noreferrer" className={styles.reportLink}>
+                      <a href={resolveAssetUrl(selectedTest.report.url)} target="_blank" rel="noreferrer" className={styles.reportLink}>
                         <FileText size={14} /> View Report
                       </a>
                     </span>

@@ -1,4 +1,4 @@
-.page {
+﻿.page {
   max-width: 1200px;
   margin: 0 auto;
 }
@@ -7,8 +7,8 @@
   margin-bottom: 2rem;
   padding: 1.5rem 1.75rem;
   border-radius: 18px;
-  background: linear-gradient(135deg, rgba(14, 165, 164, 0.14), rgba(250, 204, 21, 0.12));
-  border: 1px solid rgba(14, 116, 144, 0.18);
+  background: var(--gradient-hero);
+  border: 1px solid var(--color-primary-border);
 }
 
 .title {
@@ -46,6 +46,73 @@
   grid-template-columns: repeat(4, 1fr);
   gap: 1.25rem;
   margin-bottom: 2rem;
+}
+
+.quickActions {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.quickActionBtn {
+  border: 1px solid var(--color-primary-border);
+  background: var(--color-primary-soft);
+  color: var(--color-primary-dark);
+  border-radius: 12px;
+  padding: 0.68rem 0.8rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: inherit;
+}
+
+.quickActionBtn:hover {
+  background: #ffffff;
+  box-shadow: var(--shadow-sm);
+}
+
+.attentionGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.95rem;
+  margin-bottom: 2rem;
+}
+
+.attentionCard {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  border-radius: 14px;
+  padding: 0.95rem;
+}
+
+.attentionLabel {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--color-text-secondary);
+}
+
+.attentionValue {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 1.5rem;
+  color: var(--color-text-primary);
+}
+
+.attentionLink {
+  margin-top: 0.55rem;
+  border: none;
+  background: transparent;
+  color: var(--color-primary);
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0;
+  cursor: pointer;
 }
 
 .section {
@@ -87,7 +154,7 @@
   gap: 0.375rem;
   font-size: 0.85rem;
   font-weight: 600;
-  color: #0f766e;
+  color: #2563eb;
   min-width: 100px;
 }
 
@@ -175,6 +242,16 @@
   flex-shrink: 0;
 }
 
+.quickStatIconInfo {
+  background: var(--status-processing-bg);
+  color: var(--status-processing-text);
+}
+
+.quickStatIconWarn {
+  background: var(--status-pending-bg);
+  color: var(--status-pending-text);
+}
+
 .quickStatContent {
   display: flex;
   flex-direction: column;
@@ -248,11 +325,23 @@
   .statsGrid {
     grid-template-columns: repeat(2, 1fr);
   }
+
+  .quickActions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .attentionGrid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 768px) {
   .statsGrid,
   .quickStatsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .quickActions {
     grid-template-columns: 1fr;
   }
 
@@ -276,3 +365,4 @@
     flex: 1;
   }
 }
+

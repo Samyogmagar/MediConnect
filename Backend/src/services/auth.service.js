@@ -1,22 +1,430 @@
+import fs from 'fs';
+import path from 'path';
+import crypto from 'crypto';
+import jwt from 'jsonwebtoken';
+import axios from 'axios';
 import User from '../models/User.model.js';
 import { ROLES, VERIFICATION_REQUIRED_ROLES, PUBLIC_REGISTRATION_ROLES } from '../constants/roles.js';
 import MESSAGES from '../constants/messages.js';
 import { hashPassword, comparePassword } from '../utils/password.util.js';
 import { generateToken } from '../utils/token.util.js';
+import { buildSearchRegex } from '../utils/search.util.js';
 import notificationService from './notification.service.js';
+import emailService from './email.service.js';
+import env from '../config/env.js';
 
 /**
  * Authentication Service
  * Contains all business logic for authentication operations
  */
 class AuthService {
+  _getSocialProviderConfigs() {
+    return {
+      google: {
+        key: 'google',
+        label: 'Google',
+        clientId: env.GOOGLE_CLIENT_ID,
+        clientSecret: env.GOOGLE_CLIENT_SECRET,
+        enabled: env.GOOGLE_AUTH_ENABLED,
+        authUrl: 'https://accounts.google.com/o/oauth2/v2/auth',
+        scopes: ['openid', 'email', 'profile'],
+      },
+      github: {
+        key: 'github',
+        label: 'GitHub',
+        clientId: env.GITHUB_CLIENT_ID,
+        clientSecret: env.GITHUB_CLIENT_SECRET,
+        enabled: env.GITHUB_AUTH_ENABLED,
+        authUrl: 'https://github.com/login/oauth/authorize',
+        scopes: ['read:user', 'user:email'],
+      },
+      facebook: {
+        key: 'facebook',
+        label: 'Facebook',
+        clientId: env.FACEBOOK_CLIENT_ID,
+        clientSecret: env.FACEBOOK_CLIENT_SECRET,
+        enabled: env.FACEBOOK_AUTH_ENABLED,
+        authUrl: 'https://www.facebook.com/v22.0/dialog/oauth',
+        scopes: ['email', 'public_profile'],
+      },
+    };
+  }
+
+  _getProviderAvailability(config) {
+    const missingFields = [];
+    if (!config.clientId) missingFields.push('clientId');
+    if (!config.clientSecret) missingFields.push('clientSecret');
+
+    const configured = missingFields.length === 0;
+    const enabled = Boolean(config.enabled && configured);
+
+    let unavailableReason = '';
+    if (!configured) {
+      unavailableReason = MESSAGES.AUTH.SOCIAL_PROVIDER_NOT_CONFIGURED;
+    } else if (!config.enabled) {
+      unavailableReason = MESSAGES.AUTH.SOCIAL_PROVIDER_DISABLED;
+    }
+
+    return {
+      configured,
+      enabled,
+      missingFields,
+      unavailableReason,
+    };
+  }
+
+  _getProviderConfig(provider) {
+    const key = String(provider || '').trim().toLowerCase();
+    const configs = this._getSocialProviderConfigs();
+
+    const selected = configs[key];
+    if (!selected) {
+      throw { statusCode: 400, message: MESSAGES.AUTH.SOCIAL_PROVIDER_UNSUPPORTED };
+    }
+
+    const availability = this._getProviderAvailability(selected);
+
+    if (!availability.configured) {
+      throw {
+        statusCode: 503,
+        message: `${selected.label}: ${MESSAGES.AUTH.SOCIAL_PROVIDER_NOT_CONFIGURED}`,
+      };
+    }
+
+    if (!selected.enabled) {
+      throw {
+        statusCode: 503,
+        message: `${selected.label}: ${MESSAGES.AUTH.SOCIAL_PROVIDER_DISABLED}`,
+      };
+    }
+
+    return selected;
+  }
+
+  _buildProviderCallbackUrl(provider) {
+    // Use the same logic for all providers (frontend route)
+    const normalizedFrontendUrl = String(env.FRONTEND_URL || '').trim().replace(/\/+$/, '');
+    const rawCallbackPath = String(env.OAUTH_CALLBACK_PATH || '/auth/oauth/callback').trim();
+    const normalizedCallbackPath = `/${rawCallbackPath.replace(/^\/+|\/+$/g, '')}`;
+    const normalizedProvider = String(provider || '').trim().toLowerCase();
+    return `${normalizedFrontendUrl}${normalizedCallbackPath}/${normalizedProvider}`;
+  }
+
+  _signSocialStateToken(payload) {
+    return jwt.sign(
+      {
+        type: 'social_oauth_state',
+        ...payload,
+      },
+      env.JWT_SECRET,
+      {
+        expiresIn: '10m',
+        algorithm: 'HS256',
+      }
+    );
+  }
+
+  _verifySocialStateToken(token) {
+    try {
+      const decoded = jwt.verify(token, env.JWT_SECRET, { algorithms: ['HS256'] });
+      if (decoded?.type !== 'social_oauth_state') {
+        throw new Error('invalid_state_type');
+      }
+      return decoded;
+    } catch {
+      throw { statusCode: 400, message: MESSAGES.AUTH.SOCIAL_AUTH_STATE_INVALID };
+    }
+  }
+
+  listSocialProviders(intent = 'login') {
+    const normalizedIntent = intent === 'register' ? 'register' : 'login';
+    const providers = Object.values(this._getSocialProviderConfigs()).map((config) => {
+      const availability = this._getProviderAvailability(config);
+
+      return {
+        provider: config.key,
+        label: config.label,
+        intent: normalizedIntent,
+        role: ROLES.PATIENT,
+        callbackUrl: this._buildProviderCallbackUrl(config.key),
+        configured: availability.configured,
+        enabled: availability.enabled,
+        missingFields: availability.missingFields,
+        unavailableReason: availability.unavailableReason,
+      };
+    });
+
+    return { providers };
+  }
+
+  getSocialProviderStart(provider, intent = 'login') {
+    const selected = this._getProviderConfig(provider);
+    const normalizedIntent = intent === 'register' ? 'register' : 'login';
+
+    const callbackUrl = this._buildProviderCallbackUrl(selected.key);
+    const state = this._signSocialStateToken({
+      provider: selected.key,
+      intent: normalizedIntent,
+      nonce: crypto.randomBytes(12).toString('hex'),
+    });
+
+    const params = new URLSearchParams({
+      client_id: selected.clientId,
+      redirect_uri: callbackUrl,
+      response_type: 'code',
+      state,
+      scope: selected.scopes.join(' '),
+    });
+
+    if (selected.key === 'google') {
+      params.set('access_type', 'online');
+      params.set('include_granted_scopes', 'true');
+      params.set('prompt', 'select_account');
+    }
+
+    if (selected.key === 'facebook') {
+      params.set('display', 'popup');
+    }
+
+    const authUrl = `${selected.authUrl}?${params.toString()}`;
+
+    return {
+      provider: selected.key,
+      intent: normalizedIntent,
+      role: ROLES.PATIENT,
+      configured: true,
+      enabled: true,
+      callbackUrl,
+      authUrl,
+      message: 'Provider is configured and ready for OAuth redirect.',
+    };
+  }
+
+  async _exchangeCodeForTokens(config, code) {
+    const redirectUri = this._buildProviderCallbackUrl(config.key);
+
+    if (config.key === 'google') {
+      const body = new URLSearchParams({
+        code,
+        client_id: config.clientId,
+        client_secret: config.clientSecret,
+        redirect_uri: redirectUri,
+        grant_type: 'authorization_code',
+      });
+
+      const tokenRes = await axios.post('https://oauth2.googleapis.com/token', body.toString(), {
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      });
+      return tokenRes.data;
+    }
+
+    if (config.key === 'github') {
+      const tokenRes = await axios.post(
+        'https://github.com/login/oauth/access_token',
+        {
+          code,
+          client_id: config.clientId,
+          client_secret: config.clientSecret,
+          redirect_uri: redirectUri,
+        },
+        {
+          headers: { Accept: 'application/json' },
+        }
+      );
+      return tokenRes.data;
+    }
+
+    if (config.key === 'facebook') {
+      const tokenRes = await axios.get('https://graph.facebook.com/v22.0/oauth/access_token', {
+        params: {
+          client_id: config.clientId,
+          client_secret: config.clientSecret,
+          redirect_uri: redirectUri,
+          code,
+        },
+      });
+      return tokenRes.data;
+    }
+
+    throw { statusCode: 400, message: MESSAGES.AUTH.SOCIAL_PROVIDER_UNSUPPORTED };
+  }
+
+  async _fetchProviderUserProfile(config, accessToken) {
+    if (config.key === 'google') {
+      const profileRes = await axios.get('https://www.googleapis.com/oauth2/v2/userinfo', {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      return {
+        providerId: profileRes.data.id,
+        email: profileRes.data.email,
+        name: profileRes.data.name,
+      };
+    }
+
+    if (config.key === 'github') {
+      const profileRes = await axios.get('https://api.github.com/user', {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+
+      let resolvedEmail = profileRes.data.email;
+      if (!resolvedEmail) {
+        const emailsRes = await axios.get('https://api.github.com/user/emails', {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+        const primary = (emailsRes.data || []).find((item) => item.primary && item.verified);
+        const fallback = (emailsRes.data || []).find((item) => item.verified);
+        resolvedEmail = primary?.email || fallback?.email || '';
+      }
+
+      return {
+        providerId: String(profileRes.data.id),
+        email: resolvedEmail,
+        name: profileRes.data.name || profileRes.data.login,
+      };
+    }
+
+    if (config.key === 'facebook') {
+      const profileRes = await axios.get('https://graph.facebook.com/me', {
+        params: {
+          fields: 'id,name,email',
+          access_token: accessToken,
+        },
+      });
+
+      return {
+        providerId: profileRes.data.id,
+        email: profileRes.data.email,
+        name: profileRes.data.name,
+      };
+    }
+
+    throw { statusCode: 400, message: MESSAGES.AUTH.SOCIAL_PROVIDER_UNSUPPORTED };
+  }
+
+  async _upsertPatientFromSocialProfile(config, profile) {
+    const normalizedEmail = String(profile.email || '').trim().toLowerCase();
+    if (!normalizedEmail) {
+      throw { statusCode: 400, message: MESSAGES.AUTH.SOCIAL_AUTH_EMAIL_REQUIRED };
+    }
+
+    const existingUser = await User.findOne({ email: normalizedEmail }).select('+password');
+    if (existingUser) {
+      if (existingUser.role !== ROLES.PATIENT) {
+        throw { statusCode: 409, message: MESSAGES.AUTH.SOCIAL_AUTH_ACCOUNT_ROLE_CONFLICT };
+      }
+      if (existingUser.isActive === false) {
+        throw { statusCode: 403, message: MESSAGES.AUTH.INACTIVE_ACCOUNT };
+      }
+
+      existingUser.socialAuth = {
+        ...(existingUser.socialAuth || {}),
+        lastProvider: config.key,
+        providers: {
+          ...((existingUser.socialAuth && existingUser.socialAuth.providers) || {}),
+          [config.key]: {
+            id: profile.providerId,
+            linkedAt: new Date(),
+          },
+        },
+      };
+
+      if (!existingUser.name && profile.name) {
+        existingUser.name = profile.name;
+      }
+
+      await existingUser.save();
+      return { user: existingUser, isNewUser: false };
+    }
+
+    const generatedPassword = crypto.randomBytes(24).toString('hex');
+    const hashedPassword = await hashPassword(generatedPassword);
+
+    const createdUser = await User.create({
+      name: profile.name || normalizedEmail.split('@')[0],
+      email: normalizedEmail,
+      password: hashedPassword,
+      role: ROLES.PATIENT,
+      isVerified: true,
+      socialAuth: {
+        lastProvider: config.key,
+        providers: {
+          [config.key]: {
+            id: profile.providerId,
+            linkedAt: new Date(),
+          },
+        },
+      },
+    });
+
+    return { user: createdUser, isNewUser: true };
+  }
+
+  async completeSocialProviderAuth(provider, payload = {}) {
+    const { code, state } = payload;
+    if (!code) {
+      throw { statusCode: 400, message: MESSAGES.AUTH.SOCIAL_AUTH_CODE_REQUIRED };
+    }
+    if (!state) {
+      throw { statusCode: 400, message: MESSAGES.AUTH.SOCIAL_AUTH_STATE_REQUIRED };
+    }
+
+    const statePayload = this._verifySocialStateToken(state);
+    const config = this._getProviderConfig(provider);
+
+    if (statePayload.provider !== config.key) {
+      throw { statusCode: 400, message: MESSAGES.AUTH.SOCIAL_AUTH_STATE_INVALID };
+    }
+
+    try {
+      const tokenData = await this._exchangeCodeForTokens(config, code);
+      const accessToken = tokenData?.access_token;
+      if (!accessToken) {
+        throw new Error('missing_access_token');
+      }
+
+      const profile = await this._fetchProviderUserProfile(config, accessToken);
+      const { user, isNewUser } = await this._upsertPatientFromSocialProfile(config, profile);
+      const token = this._generateAuthToken(user);
+
+      return {
+        user: this._sanitizeUser(user),
+        token,
+        isNewUser,
+        message: isNewUser ? MESSAGES.AUTH.REGISTER_SUCCESS : MESSAGES.AUTH.LOGIN_SUCCESS,
+      };
+    } catch (error) {
+      if (error?.statusCode) {
+        throw error;
+      }
+      throw { statusCode: 502, message: MESSAGES.AUTH.SOCIAL_AUTH_FAILED };
+    }
+  }
+
+  _generateSixDigitOtp() {
+    return String(Math.floor(100000 + Math.random() * 900000));
+  }
+
+  _passwordResetOtpExpiry() {
+    return new Date(Date.now() + 10 * 60 * 1000);
+  }
+
   /**
    * Register a new user
    * @param {Object} userData - User registration data
    * @returns {Object} Registered user and token
    */
   async register(userData) {
-    const { name, email, password, role = ROLES.PATIENT, professionalDetails } = userData;
+    const {
+      name,
+      email,
+      password,
+      role = ROLES.PATIENT,
+      professionalDetails,
+      phone,
+      address,
+      dateOfBirth,
+      gender,
+    } = userData;
 
     // Check if admin role is being requested - admins cannot self-register
     if (role === ROLES.ADMIN) {
@@ -55,8 +463,10 @@ class AuthService {
       role,
       isVerified,
       professionalDetails: professionalDetails || {},
-      phone: userData.phone,
-      address: userData.address,
+      phone,
+      address,
+      dateOfBirth,
+      gender,
     });
 
     // Notify admin users when a new doctor/lab registers for verification.
@@ -80,10 +490,16 @@ class AuthService {
    * @returns {Object} User and token
    */
   async login(credentials) {
-    const { email, password } = credentials;
+    const { identifier, password } = credentials;
 
     // Find user with password field
-    const user = await User.findOne({ email: email.toLowerCase() }).select('+password');
+    const normalizedIdentifier = String(identifier || '').trim();
+    const user = await User.findOne({
+      $or: [
+        { email: normalizedIdentifier.toLowerCase() },
+        { phone: normalizedIdentifier },
+      ],
+    }).select('+password');
     if (!user) {
       throw { statusCode: 401, message: MESSAGES.AUTH.INVALID_CREDENTIALS };
     }
@@ -331,8 +747,10 @@ class AuthService {
       query.isVerified = filters.isVerified === 'true' || filters.isVerified === true;
     }
     if (filters.search) {
-      const regex = new RegExp(filters.search, 'i');
-      query.$or = [{ name: regex }, { email: regex }];
+      const regex = buildSearchRegex(filters.search);
+      if (regex) {
+        query.$or = [{ name: regex }, { email: regex }];
+      }
     }
 
     const users = await User.find(query).sort({ createdAt: -1 });
@@ -432,6 +850,47 @@ class AuthService {
   }
 
   /**
+   * Update profile photo for user
+   * @param {string} userId - User ID
+   * @param {Object} file - Multer file object
+   */
+  async updateProfilePhoto(userId, file) {
+    const user = await User.findById(userId);
+    if (!user) {
+      throw { statusCode: 404, message: 'User not found' };
+    }
+
+    if (!file?.filename) {
+      throw { statusCode: 400, message: 'Profile photo file is required' };
+    }
+
+    const previousPhoto = user.profileImageUrl;
+    user.profileImageUrl = `/uploads/profile-images/${file.filename}`;
+    await user.save();
+
+    this._deleteLocalUploadIfSafe(previousPhoto);
+    return this._sanitizeUser(user);
+  }
+
+  /**
+   * Remove profile photo from user
+   * @param {string} userId - User ID
+   */
+  async removeProfilePhoto(userId) {
+    const user = await User.findById(userId);
+    if (!user) {
+      throw { statusCode: 404, message: 'User not found' };
+    }
+
+    const previousPhoto = user.profileImageUrl;
+    user.profileImageUrl = '';
+    await user.save();
+
+    this._deleteLocalUploadIfSafe(previousPhoto);
+    return this._sanitizeUser(user);
+  }
+
+  /**
    * Change user password
    * @param {string} userId - User ID
    * @param {string} currentPassword - Current password
@@ -453,6 +912,123 @@ class AuthService {
     await user.save();
 
     return { message: 'Password changed successfully' };
+  }
+
+  /**
+   * Request password reset OTP by email
+   * @param {string} email
+   */
+  async requestPasswordResetOtp(email) {
+    const normalizedEmail = String(email || '').trim().toLowerCase();
+    const genericMessage = 'If an account exists with this email, an OTP has been sent.';
+
+    if (!normalizedEmail) {
+      throw { statusCode: 400, message: MESSAGES.VALIDATION.EMAIL_REQUIRED };
+    }
+
+    const user = await User.findOne({ email: normalizedEmail }).select('+passwordResetOtpHash +passwordResetOtpExpires');
+    if (!user) {
+      return { message: genericMessage };
+    }
+
+    const otp = this._generateSixDigitOtp();
+    user.passwordResetOtpHash = await hashPassword(otp);
+    user.passwordResetOtpExpires = this._passwordResetOtpExpiry();
+    await user.save();
+
+    await emailService.sendPasswordResetOtp({
+      to: normalizedEmail,
+      otp,
+      appName: env.APP_NAME,
+    });
+
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`[PASSWORD_RESET_OTP] ${normalizedEmail}: ${otp}`);
+      return { message: genericMessage, devOtp: otp };
+    }
+
+    return { message: genericMessage };
+  }
+
+  /**
+   * Verify password reset OTP for an email
+   * @param {string} email
+   * @param {string} otp
+   */
+  async verifyPasswordResetOtp(email, otp) {
+    const normalizedEmail = String(email || '').trim().toLowerCase();
+    const normalizedOtp = String(otp || '').trim();
+
+    if (!normalizedEmail) {
+      throw { statusCode: 400, message: MESSAGES.VALIDATION.EMAIL_REQUIRED };
+    }
+    if (!normalizedOtp) {
+      throw { statusCode: 400, message: 'OTP is required' };
+    }
+
+    const user = await User.findOne({ email: normalizedEmail }).select('+passwordResetOtpHash +passwordResetOtpExpires');
+    if (!user?.passwordResetOtpHash || !user?.passwordResetOtpExpires) {
+      throw { statusCode: 400, message: 'OTP is invalid or expired' };
+    }
+
+    if (new Date(user.passwordResetOtpExpires).getTime() < Date.now()) {
+      throw { statusCode: 400, message: 'OTP has expired. Please request a new one.' };
+    }
+
+    const isMatch = await comparePassword(normalizedOtp, user.passwordResetOtpHash);
+    if (!isMatch) {
+      throw { statusCode: 400, message: 'Invalid OTP' };
+    }
+
+    return { message: 'OTP verified successfully' };
+  }
+
+  /**
+   * Reset password using email + OTP
+   * @param {string} email
+   * @param {string} otp
+   * @param {string} newPassword
+   */
+  async resetPasswordWithOtp(email, otp, newPassword) {
+    const normalizedEmail = String(email || '').trim().toLowerCase();
+    const normalizedOtp = String(otp || '').trim();
+
+    if (!normalizedEmail) {
+      throw { statusCode: 400, message: MESSAGES.VALIDATION.EMAIL_REQUIRED };
+    }
+    if (!normalizedOtp) {
+      throw { statusCode: 400, message: 'OTP is required' };
+    }
+    if (!newPassword) {
+      throw { statusCode: 400, message: MESSAGES.VALIDATION.PASSWORD_REQUIRED };
+    }
+    if (newPassword.length < 6) {
+      throw { statusCode: 400, message: 'New password must be at least 6 characters' };
+    }
+
+    const user = await User.findOne({ email: normalizedEmail }).select(
+      '+password +passwordResetOtpHash +passwordResetOtpExpires'
+    );
+
+    if (!user?.passwordResetOtpHash || !user?.passwordResetOtpExpires) {
+      throw { statusCode: 400, message: 'OTP is invalid or expired' };
+    }
+
+    if (new Date(user.passwordResetOtpExpires).getTime() < Date.now()) {
+      throw { statusCode: 400, message: 'OTP has expired. Please request a new one.' };
+    }
+
+    const isMatch = await comparePassword(normalizedOtp, user.passwordResetOtpHash);
+    if (!isMatch) {
+      throw { statusCode: 400, message: 'Invalid OTP' };
+    }
+
+    user.password = await hashPassword(newPassword);
+    user.passwordResetOtpHash = undefined;
+    user.passwordResetOtpExpires = undefined;
+    await user.save();
+
+    return { message: 'Password reset successfully' };
   }
 
   /**
@@ -480,6 +1056,38 @@ class AuthService {
     const userObj = user.toObject ? user.toObject() : user;
     const { password, __v, ...sanitizedUser } = userObj;
     return sanitizedUser;
+  }
+
+  /**
+   * Delete only locally uploaded files under /uploads/profile-images.
+   * Avoid deleting non-local or external URLs.
+   * @private
+   */
+  _deleteLocalUploadIfSafe(sourceUrl) {
+    if (!sourceUrl || typeof sourceUrl !== 'string') return;
+
+    try {
+      const marker = '/uploads/profile-images/';
+      let relativePath = '';
+
+      if (sourceUrl.startsWith(marker)) {
+        relativePath = sourceUrl;
+      } else {
+        const parsed = new URL(sourceUrl);
+        if (parsed.pathname.startsWith(marker)) {
+          relativePath = parsed.pathname;
+        }
+      }
+
+      if (!relativePath) return;
+
+      const filePath = path.join(process.cwd(), relativePath.replace(/^\//, ''));
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+    } catch {
+      // Best-effort cleanup; ignore malformed URLs or missing files.
+    }
   }
 }
 

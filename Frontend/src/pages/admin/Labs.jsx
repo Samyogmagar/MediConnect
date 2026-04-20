@@ -4,10 +4,12 @@ import AdminLayout from '../../components/admin/AdminLayout';
 import FilterToolbar from '../../components/admin/FilterToolbar';
 import DataTable from '../../components/admin/DataTable';
 import StatusBadge from '../../components/admin/StatusBadge';
+import { useModal } from '../../components/common/feedback/ModalProvider';
 import adminService from '../../services/adminService';
 import styles from './Labs.module.css';
 
 const Labs = () => {
+  const { showConfirm } = useModal();
   const [labs, setLabs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -83,7 +85,14 @@ const Labs = () => {
     const confirmText = nextStatus
       ? 'Activate this lab account?'
       : 'Deactivate this lab account? They will not be able to sign in.';
-    if (!window.confirm(confirmText)) return;
+    const { confirmed } = await showConfirm({
+      title: nextStatus ? 'Activate lab account?' : 'Deactivate lab account?',
+      message: confirmText,
+      confirmText: nextStatus ? 'Activate' : 'Deactivate',
+      cancelText: 'Cancel',
+      confirmVariant: nextStatus ? 'success' : 'danger',
+    });
+    if (!confirmed) return;
 
     try {
       const res = await adminService.updateUserStatus(lab._id, nextStatus);

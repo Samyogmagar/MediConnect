@@ -12,6 +12,7 @@ const BookAppointment = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const autoFinalizeTriggeredRef = useRef(false);
+  const slotPrefillAppliedRef = useRef(false);
 
   const [doctor, setDoctor] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -36,6 +37,7 @@ const BookAppointment = () => {
   const [formErrors, setFormErrors] = useState({});
 
   const KHALTI_DRAFT_KEY = 'pendingKhaltiAppointmentDraft';
+  const followUpOf = new URLSearchParams(location.search).get('followUpOf') || '';
 
   const loadSlots = useCallback(async (selectedDate) => {
     if (!selectedDate) {
@@ -156,6 +158,7 @@ const BookAppointment = () => {
             paymentMethod: 'khalti',
             paymentAmount: Number(draft.paymentAmount),
             khaltiPidx: returnedPidx,
+            followUpOf: draft.followUpOf || undefined,
           });
 
           localStorage.removeItem(KHALTI_DRAFT_KEY);
@@ -181,6 +184,26 @@ const BookAppointment = () => {
       finalizeBooking();
     }
   }, [location.search, doctorId, navigate, loadSlots]);
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    if (searchParams.get('pidx') || slotPrefillAppliedRef.current) return;
+
+    const slotFromQuery = searchParams.get('slot');
+    if (!slotFromQuery) return;
+
+    const parsedDate = new Date(slotFromQuery);
+    if (Number.isNaN(parsedDate.getTime())) return;
+
+    const dateOnly = parsedDate.toISOString().split('T')[0];
+    slotPrefillAppliedRef.current = true;
+    setFormData((prev) => ({
+      ...prev,
+      date: prev.date || dateOnly,
+      slot: prev.slot || slotFromQuery,
+    }));
+    loadSlots(dateOnly);
+  }, [location.search, loadSlots]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -243,6 +266,7 @@ const BookAppointment = () => {
           notes: formData.notes.trim(),
           paymentAmount: Number(formData.paymentAmount),
           paymentMethod: 'khalti',
+          followUpOf: followUpOf || undefined,
           createdAt: new Date().toISOString(),
         };
         localStorage.setItem(KHALTI_DRAFT_KEY, JSON.stringify(bookingDraft));
@@ -274,6 +298,7 @@ const BookAppointment = () => {
         notes: formData.notes.trim() || undefined,
         paymentMethod: 'cod',
         paymentAmount: Number(formData.paymentAmount),
+        followUpOf: followUpOf || undefined,
       });
 
       setSuccess('Booking confirmed successfully!');

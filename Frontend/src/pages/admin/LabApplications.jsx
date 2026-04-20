@@ -3,10 +3,14 @@ import { Eye, UserCheck, UserX, FlaskConical } from 'lucide-react';
 import AdminLayout from '../../components/admin/AdminLayout';
 import FilterToolbar from '../../components/admin/FilterToolbar';
 import DataTable from '../../components/admin/DataTable';
+import { useToast } from '../../components/common/feedback/ToastProvider';
+import { useModal } from '../../components/common/feedback/ModalProvider';
 import adminService from '../../services/adminService';
 import styles from './LabApplications.module.css';
 
 const LabApplications = () => {
+  const { showToast } = useToast();
+  const { showConfirm } = useModal();
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -57,7 +61,15 @@ const LabApplications = () => {
   }, [applications, search, statusFilter]);
 
   const handleVerify = async (userId) => {
-    if (!window.confirm('Verify this lab account?')) return;
+    const { confirmed } = await showConfirm({
+      title: 'Verify lab account?',
+      message: 'This lab account will gain full system access after verification.',
+      confirmText: 'Verify',
+      cancelText: 'Cancel',
+      confirmVariant: 'success',
+    });
+    if (!confirmed) return;
+
     setActionLoading(userId);
     try {
       await adminService.verifyUser(userId);
@@ -65,15 +77,32 @@ const LabApplications = () => {
         prev.map((a) => (a._id === userId ? { ...a, isVerified: true } : a))
       );
       setPendingCount((c) => Math.max(0, c - 1));
+      showToast({
+        type: 'success',
+        title: 'Lab verified',
+        message: 'Lab account verified successfully.',
+      });
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to verify lab.');
+      showToast({
+        type: 'error',
+        title: 'Verification failed',
+        message: err.response?.data?.message || 'Failed to verify lab.',
+      });
     } finally {
       setActionLoading(null);
     }
   };
 
   const handleUnverify = async (userId) => {
-    if (!window.confirm('Unverify this lab account? They will lose system access.')) return;
+    const { confirmed } = await showConfirm({
+      title: 'Unverify lab account?',
+      message: 'This lab account will lose system access until re-verified.',
+      confirmText: 'Unverify',
+      cancelText: 'Cancel',
+      confirmVariant: 'danger',
+    });
+    if (!confirmed) return;
+
     setActionLoading(userId);
     try {
       await adminService.unverifyUser(userId);
@@ -81,8 +110,17 @@ const LabApplications = () => {
         prev.map((a) => (a._id === userId ? { ...a, isVerified: false } : a))
       );
       setPendingCount((c) => c + 1);
+      showToast({
+        type: 'success',
+        title: 'Lab unverified',
+        message: 'Lab account unverified successfully.',
+      });
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to unverify lab.');
+      showToast({
+        type: 'error',
+        title: 'Unverify failed',
+        message: err.response?.data?.message || 'Failed to unverify lab.',
+      });
     } finally {
       setActionLoading(null);
     }

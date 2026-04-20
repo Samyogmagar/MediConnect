@@ -9,6 +9,7 @@ import Notifications from '../pages/doctor/Notifications';
 import AssignLabTest from '../pages/doctor/AssignLabTest';
 import Availability from '../pages/doctor/Availability';
 import Settings from '../pages/doctor/Settings';
+import Profile from '../pages/doctor/Profile';
 
 const DoctorRoutes = () => {
   const { user, loading } = useAuth();
@@ -30,6 +31,7 @@ const DoctorRoutes = () => {
       <Route path="notifications" element={<Notifications />} />
       <Route path="assign-lab-test" element={<AssignLabTest />} />
       <Route path="settings" element={<Settings />} />
+      <Route path="profile" element={<Profile />} />
       <Route path="*" element={<Navigate to="dashboard" replace />} />
     </Routes>
   );

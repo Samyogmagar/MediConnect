@@ -41,7 +41,7 @@ class AppointmentController {
    */
   async createAppointment(req, res) {
     try {
-      const { doctorId, dateTime, reason, notes, paymentMethod, khaltiPidx } = req.body;
+      const { doctorId, dateTime, reason, notes, paymentMethod, khaltiPidx, followUpOf } = req.body;
 
       // Validation
       const errors = [];
@@ -60,7 +60,7 @@ class AppointmentController {
       }
 
       const appointment = await appointmentService.createAppointment(
-        { doctorId, dateTime, reason, notes, paymentMethod, khaltiPidx },
+        { doctorId, dateTime, reason, notes, paymentMethod, khaltiPidx, followUpOf },
         req.user.userId
       );
 
@@ -225,6 +225,34 @@ class AppointmentController {
       return successResponse(res, 200, MESSAGES.APPOINTMENT.COMPLETED, { appointment });
     } catch (error) {
       console.error('Complete appointment error:', error);
+      return errorResponse(res, error.statusCode || 500, error.message || MESSAGES.SERVER.ERROR);
+    }
+  }
+
+  /**
+   * Reschedule appointment (Doctor only)
+   * PUT /api/appointments/:id/reschedule-by-doctor
+   */
+  async rescheduleAppointmentByDoctor(req, res) {
+    try {
+      const { id } = req.params;
+      const { dateTime, reason, notes } = req.body;
+
+      if (!dateTime) {
+        return validationErrorResponse(res, 'Validation failed', [
+          { field: 'dateTime', message: MESSAGES.APPOINTMENT.DATETIME_REQUIRED },
+        ]);
+      }
+
+      const appointment = await appointmentService.rescheduleAppointmentByDoctor(
+        id,
+        req.user.userId,
+        { dateTime, reason, notes }
+      );
+
+      return successResponse(res, 200, MESSAGES.APPOINTMENT.UPDATED, { appointment });
+    } catch (error) {
+      console.error('Doctor reschedule appointment error:', error);
       return errorResponse(res, error.statusCode || 500, error.message || MESSAGES.SERVER.ERROR);
     }
   }

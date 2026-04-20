@@ -1,8 +1,11 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Search } from 'lucide-react';
 import DashboardLayout from '../../components/layout/DashboardLayout';
-import DoctorCard from '../../components/patient/DoctorCard';
+import DoctorsPageHeader from '../../components/patient/doctors/DoctorsPageHeader';
+import DoctorSearchToolbar from '../../components/patient/doctors/DoctorSearchToolbar';
+import DoctorResultsMeta from '../../components/patient/doctors/DoctorResultsMeta';
+import DoctorListItemCard from '../../components/patient/doctors/DoctorListItemCard';
+import EmptyDoctorsState from '../../components/patient/doctors/EmptyDoctorsState';
 import notificationService from '../../services/notificationService';
 import doctorService from '../../services/doctorService';
 import styles from './DoctorSearch.module.css';
@@ -15,8 +18,10 @@ const DoctorSearch = () => {
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [specialization, setSpecialization] = useState('');
+  const [availabilityFilter, setAvailabilityFilter] = useState('all');
   const [sortBy, setSortBy] = useState('recommended');
   const [unreadCount, setUnreadCount] = useState(0);
+  const [availabilityMap, setAvailabilityMap] = useState({});
 
   useEffect(() => {
     fetchDoctors();
@@ -68,22 +73,51 @@ const DoctorSearch = () => {
       const matchesSpec =
         !specialization || spec === specialization.toLowerCase();
 
-      return matchesSearch && matchesSpec;
+      const snapshot = availabilityMap[doc._id];
+      const status = snapshot?.status || 'unavailable';
+      const matchesAvailability =
+        availabilityFilter === 'all' ||
+        (availabilityFilter === 'available_today' && status === 'available_today') ||
+        (availabilityFilter === 'bookable' && ['available_today', 'next_tomorrow', 'upcoming'].includes(status)) ||
+        (availabilityFilter === 'unavailable' && status === 'unavailable');
+
+      return matchesSearch && matchesSpec && matchesAvailability;
     });
 
     const sorted = [...filtered];
-    if (sortBy === 'fee_low') {
-      sorted.sort((a, b) => (a.consultationFee || 0) - (b.consultationFee || 0));
-    }
-    if (sortBy === 'experience_high') {
+    if (sortBy === 'recommended') {
+      const rank = (doctor) => {
+        const status = availabilityMap[doctor._id]?.status;
+        if (status === 'available_today') return 3;
+        if (status === 'next_tomorrow') return 2;
+        if (status === 'upcoming') return 1;
+        return 0;
+      };
+      sorted.sort((a, b) => rank(b) - rank(a));
+    } else if (sortBy === 'fee_low') {
       sorted.sort(
         (a, b) =>
-          (b.professionalDetails?.experience || 0) -
-          (a.professionalDetails?.experience || 0)
+          Number(a.professionalDetails?.consultationFee || a.consultationFee || 0) -
+          Number(b.professionalDetails?.consultationFee || b.consultationFee || 0)
       );
+    } else if (sortBy === 'fee_high') {
+      sorted.sort(
+        (a, b) =>
+          Number(b.professionalDetails?.consultationFee || b.consultationFee || 0) -
+          Number(a.professionalDetails?.consultationFee || a.consultationFee || 0)
+      );
+    } else if (sortBy === 'experience_high') {
+      sorted.sort(
+        (a, b) =>
+          Number(b.professionalDetails?.experience || 0) -
+          Number(a.professionalDetails?.experience || 0)
+      );
+    } else if (sortBy === 'name_az') {
+      sorted.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
     }
+
     return sorted;
-  }, [doctors, searchQuery, specialization, sortBy]);
+  }, [doctors, searchQuery, specialization, availabilityFilter, sortBy, availabilityMap]);
 
   // Extract unique specializations for the dropdown (only from verified doctors)
   const specializations = useMemo(() => {
@@ -105,62 +139,111 @@ const DoctorSearch = () => {
     }
   };
 
+  const handleAvailabilityChange = (doctorId, snapshot) => {
+    setAvailabilityMap((prev) => {
+      const existing = prev[doctorId];
+      if (
+        existing &&
+        existing.status === snapshot.status &&
+        existing.label === snapshot.label &&
+        existing.slotCount === snapshot.slotCount
+      ) {
+        return prev;
+      }
+
+      return {
+        ...prev,
+        [doctorId]: snapshot,
+      };
+    });
+  };
+
+  const handleViewProfile = (doctor) => {
+    navigate(`/patient/doctors/${doctor._id}`);
+  };
+
+  const handleBookAppointment = (doctor, slot = null) => {
+    if (slot?.dateTime) {
+      const encoded = encodeURIComponent(slot.dateTime);
+      navigate(`/patient/book-appointment/${doctor._id}?slot=${encoded}`);
+      return;
+    }
+
+    navigate(`/patient/book-appointment/${doctor._id}`);
+  };
+
+  const clearFilters = () => {
+    setSearchQuery('');
+    setAvailabilityFilter('all');
+    setSortBy('recommended');
+    handleSpecialtySelect('');
+  };
+
+  const activeFilters = useMemo(() => {
+    const tags = [];
+    if (searchQuery.trim()) tags.push(`Search: ${searchQuery.trim()}`);
+    if (specialization) tags.push(`Specialization: ${specialization}`);
+    if (availabilityFilter !== 'all') {
+      const labelMap = {
+        available_today: 'Available Today',
+        bookable: 'Bookable Soon',
+        unavailable: 'Unavailable',
+      };
+      tags.push(`Availability: ${labelMap[availabilityFilter]}`);
+    }
+    if (sortBy !== 'recommended') {
+      const labelMap = {
+        fee_low: 'Fee Low-High',
+        fee_high: 'Fee High-Low',
+        experience_high: 'Most Experience',
+        name_az: 'Name A-Z',
+      };
+      tags.push(`Sort: ${labelMap[sortBy] || sortBy}`);
+    }
+    return tags;
+  }, [searchQuery, specialization, availabilityFilter, sortBy]);
+
   return (
     <DashboardLayout unreadCount={unreadCount}>
       <div className={styles.page}>
-        <div className={styles.header}>
-          <h1 className={styles.title}>Find Doctors</h1>
-          <p className={styles.subtitle}>Search and book appointments with verified doctors</p>
-        </div>
+        <DoctorsPageHeader />
+        <DoctorSearchToolbar
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          specializations={specializations}
+          specialization={specialization}
+          onSpecializationChange={handleSpecialtySelect}
+          availabilityFilter={availabilityFilter}
+          onAvailabilityFilterChange={setAvailabilityFilter}
+          sortBy={sortBy}
+          onSortChange={setSortBy}
+          hasActiveFilters={activeFilters.length > 0}
+          onClearFilters={clearFilters}
+        />
 
-        <div className={styles.filterBar}>
-          <div className={styles.searchWrapper}>
-            <Search size={18} className={styles.searchIcon} />
-            <input
-              type="text"
-              className={styles.searchInput}
-              placeholder="Search by doctor name, specialization, or clinic..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-          <select
-            className={styles.select}
-            value={specialization}
-            onChange={(e) => handleSpecialtySelect(e.target.value)}
-          >
-            <option value="">All Specializations</option>
-            {specializations.map((spec) => (
-              <option key={spec} value={spec}>
-                {spec}
-              </option>
-            ))}
-          </select>
-          <select
-            className={styles.select}
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-          >
-            <option value="recommended">Recommended</option>
-            <option value="fee_low">Lowest Fee</option>
-            <option value="experience_high">Most Experience</option>
-          </select>
-        </div>
-
-        <p className={styles.resultCount}>
-          Showing {filteredDoctors.length} doctor{filteredDoctors.length !== 1 ? 's' : ''}
-        </p>
+        <DoctorResultsMeta
+          count={filteredDoctors.length}
+          total={doctors.filter((doc) => doc.isVerified).length}
+          activeFilters={activeFilters}
+        />
 
         {error && <div className={styles.errorBanner}>{error}</div>}
 
         {loading ? (
           <p className={styles.loadingText}>Loading doctors...</p>
         ) : filteredDoctors.length === 0 ? (
-          <p className={styles.emptyText}>No doctors found matching your criteria.</p>
+          <EmptyDoctorsState hasFilters={activeFilters.length > 0} onClearFilters={clearFilters} />
         ) : (
-          <div className={styles.grid}>
+          <div className={styles.list}>
             {filteredDoctors.map((doc) => (
-              <DoctorCard key={doc._id} doctor={doc} />
+              <DoctorListItemCard
+                key={doc._id}
+                doctor={doc}
+                availabilitySnapshot={availabilityMap[doc._id]}
+                onAvailabilityChange={handleAvailabilityChange}
+                onBook={handleBookAppointment}
+                onViewProfile={handleViewProfile}
+              />
             ))}
           </div>
         )}

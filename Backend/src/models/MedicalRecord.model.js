@@ -198,7 +198,6 @@ const medicalRecordSchema = new mongoose.Schema(
 );
 
 // Indexes for better query performance
-medicalRecordSchema.index({ patient: 1 });
 medicalRecordSchema.index({ 'allergies.status': 1 });
 medicalRecordSchema.index({ 'conditions.status': 1 });
 

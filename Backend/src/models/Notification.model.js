@@ -30,9 +30,11 @@ const notificationSchema = new mongoose.Schema(
       enum: {
         values: [
           'appointment_created',
+          'appointment_confirmed',
           'appointment_approved',
           'appointment_rejected',
           'appointment_cancelled',
+          'appointment_rescheduled',
           'appointment_completed',
           'diagnostic_assigned',
           'diagnostic_in_progress',
@@ -42,10 +44,13 @@ const notificationSchema = new mongoose.Schema(
           'medication_prescribed',
           'medication_discontinued',
           'medication_reminder',
+          'prescription_issued',
+          'follow_up_reminder',
           'role_application_approved',
           'role_application_rejected',
           'account_verified',
           'system_message',
+          'admin_action',
         ],
         message: 'Invalid notification type',
       },
@@ -88,6 +93,41 @@ const notificationSchema = new mongoose.Schema(
     readAt: {
       type: Date,
     },
+
+    channels: {
+      inApp: {
+        type: Boolean,
+        default: true,
+      },
+      email: {
+        type: Boolean,
+        default: false,
+      },
+      push: {
+        type: Boolean,
+        default: false,
+      },
+    },
+    delivery: {
+      email: {
+        status: {
+          type: String,
+          enum: ['pending', 'sent', 'failed', 'skipped'],
+          default: 'pending',
+        },
+        lastAttemptAt: Date,
+        error: String,
+      },
+      push: {
+        status: {
+          type: String,
+          enum: ['pending', 'sent', 'failed', 'skipped'],
+          default: 'pending',
+        },
+        lastAttemptAt: Date,
+        error: String,
+      },
+    },
     
     // Related Resources (optional)
     relatedResource: {
@@ -128,7 +168,6 @@ const notificationSchema = new mongoose.Schema(
     // Expiry (auto-delete old notifications)
     expiresAt: {
       type: Date,
-      index: true,
     },
   },
   {

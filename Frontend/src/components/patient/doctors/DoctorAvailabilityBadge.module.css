@@ -1,0 +1,36 @@
+﻿.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border-radius: var(--radius-full);
+  padding: 0.32rem 0.68rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.success {
+  color: var(--status-active-text);
+  background: var(--status-active-bg);
+  border-color: rgba(22, 101, 52, 0.2);
+}
+
+.today {
+  color: var(--status-confirmed-text);
+  background: var(--status-confirmed-bg);
+  border-color: rgba(37, 99, 235, 0.28);
+}
+
+.danger {
+  color: var(--status-cancelled-text);
+  background: var(--status-cancelled-bg);
+  border-color: rgba(185, 28, 28, 0.25);
+}
+
+.neutral {
+  color: var(--color-text-secondary);
+  background: var(--color-surface-alt);
+  border-color: var(--color-border);
+}
+

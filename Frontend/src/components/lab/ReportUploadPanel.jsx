@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import { Upload, FileText, X } from 'lucide-react';
+import { resolveAssetUrl } from '../../utils/assetUrl.util';
 import styles from './ReportUploadPanel.module.css';
 
 const ReportUploadPanel = ({ test, onSubmit, loading }) => {
@@ -7,18 +8,20 @@ const ReportUploadPanel = ({ test, onSubmit, loading }) => {
   const [notes, setNotes] = useState('');
   const [findings, setFindings] = useState('');
   const [recommendations, setRecommendations] = useState('');
+  const [fileError, setFileError] = useState('');
   const fileInputRef = useRef(null);
 
   const validateAndSetFile = (selectedFile) => {
     const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
     if (!allowedTypes.includes(selectedFile.type)) {
-      alert('Only PDF, JPG, and PNG files are allowed.');
+      setFileError('Only PDF, JPG, and PNG files are allowed.');
       return;
     }
     if (selectedFile.size > 10 * 1024 * 1024) {
-      alert('File size must be less than 10MB.');
+      setFileError('File size must be less than 10MB.');
       return;
     }
+    setFileError('');
     setFile(selectedFile);
   };
 
@@ -44,6 +47,7 @@ const ReportUploadPanel = ({ test, onSubmit, loading }) => {
     setNotes('');
     setFindings('');
     setRecommendations('');
+    setFileError('');
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
@@ -55,7 +59,7 @@ const ReportUploadPanel = ({ test, onSubmit, loading }) => {
           <p className={styles.subtitle}>Attach the completed report for this test order.</p>
         </div>
         {test?.report?.url && (
-          <a className={styles.viewLink} href={test.report.url} target="_blank" rel="noreferrer">
+          <a className={styles.viewLink} href={resolveAssetUrl(test.report.url)} target="_blank" rel="noreferrer">
             View Current Report
           </a>
         )}
@@ -90,6 +94,7 @@ const ReportUploadPanel = ({ test, onSubmit, loading }) => {
           </div>
         )}
       </div>
+      {fileError && <p className={styles.errorText}>{fileError}</p>}
 
       <div className={styles.fieldGroup}>
         <label className={styles.label}>Findings</label>

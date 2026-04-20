@@ -105,6 +105,34 @@ const userSchema = new mongoose.Schema(
         type: [String],
         default: [],
       },
+      documentCount: {
+        type: Number,
+        min: 0,
+        default: 0,
+      },
+      documents: {
+        type: [
+          {
+            name: {
+              type: String,
+              trim: true,
+            },
+            type: {
+              type: String,
+              trim: true,
+            },
+            size: {
+              type: Number,
+              min: 0,
+            },
+            uploadedAt: {
+              type: Date,
+              default: Date.now,
+            },
+          },
+        ],
+        default: [],
+      },
     },
     phone: {
       type: String,
@@ -176,11 +204,95 @@ const userSchema = new mongoose.Schema(
         type: Boolean,
         default: true,
       },
+      medicationReminders: {
+        type: Boolean,
+        default: true,
+      },
+      followUps: {
+        type: Boolean,
+        default: true,
+      },
+      system: {
+        type: Boolean,
+        default: true,
+      },
+      channels: {
+        inApp: {
+          type: Boolean,
+          default: true,
+        },
+        email: {
+          type: Boolean,
+          default: true,
+        },
+        push: {
+          type: Boolean,
+          default: false,
+        },
+      },
+    },
+    pushSubscriptions: {
+      type: [
+        {
+          endpoint: {
+            type: String,
+            required: true,
+            trim: true,
+          },
+          keys: {
+            p256dh: {
+              type: String,
+              required: true,
+            },
+            auth: {
+              type: String,
+              required: true,
+            },
+          },
+          userAgent: {
+            type: String,
+            trim: true,
+          },
+          deviceLabel: {
+            type: String,
+            trim: true,
+          },
+          lastSeenAt: {
+            type: Date,
+            default: Date.now,
+          },
+          createdAt: {
+            type: Date,
+            default: Date.now,
+          },
+        },
+      ],
+      default: [],
     },
     appearancePreference: {
       type: String,
       enum: ['light', 'dark', 'system'],
       default: 'system',
+    },
+    socialAuth: {
+      lastProvider: {
+        type: String,
+        enum: ['google', 'github', 'facebook'],
+      },
+      providers: {
+        google: {
+          id: { type: String, trim: true },
+          linkedAt: { type: Date },
+        },
+        github: {
+          id: { type: String, trim: true },
+          linkedAt: { type: Date },
+        },
+        facebook: {
+          id: { type: String, trim: true },
+          linkedAt: { type: Date },
+        },
+      },
     },
     medicalHistory: [
       {
@@ -197,6 +309,14 @@ const userSchema = new mongoose.Schema(
     ],
     profileImageUrl: {
       type: String,
+    },
+    passwordResetOtpHash: {
+      type: String,
+      select: false,
+    },
+    passwordResetOtpExpires: {
+      type: Date,
+      select: false,
     },
   },
   {

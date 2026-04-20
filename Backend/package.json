@@ -9,7 +9,7 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js"
   },
   "dependencies": {
     "axios": "^1.11.0",
@@ -22,9 +22,12 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^9.1.6",
     "multer": "^2.0.2",
-    "resend": "^4.8.0"
+    "resend": "^4.8.0",
+    "web-push": "^3.6.7"
   },
   "devDependencies": {
-    "nodemon": "^3.1.11"
+    "jest": "^29.7.0",
+    "nodemon": "^3.1.11",
+    "supertest": "^7.0.0"
   }
 }

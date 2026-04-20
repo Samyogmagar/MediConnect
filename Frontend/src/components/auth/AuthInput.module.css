@@ -18,14 +18,14 @@
   border-radius: var(--radius-md);
   padding: 0 0.875rem;
   transition: all var(--transition-base);
-  background: #fff;
+  background: var(--color-surface);
   gap: 0.5rem;
 }
 
 .inputWrapper:focus-within {
-  border-color: #2563eb;
+  border-color: var(--color-primary);
   box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
-  background: #f5f8ff;
+  background: var(--color-primary-light);
 }
 
 .inputWrapper.hasError {
@@ -38,13 +38,13 @@
 }
 
 .icon {
-  color: #cbd5e1;
+  color: var(--color-text-muted);
   flex-shrink: 0;
   transition: color var(--transition-fast);
 }
 
 .inputWrapper:focus-within .icon {
-  color: #2563eb;
+  color: var(--color-primary);
 }
 
 .inputWrapper.hasError .icon,
@@ -65,7 +65,7 @@
 }
 
 .input::placeholder {
-  color: #b8c4d0;
+  color: var(--color-text-muted);
   font-weight: 400;
 }
 
@@ -73,7 +73,7 @@
   background: none;
   border: none;
   cursor: pointer;
-  color: #b8c4d0;
+  color: var(--color-text-muted);
   display: flex;
   align-items: center;
   padding: 0;

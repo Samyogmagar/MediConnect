@@ -14,6 +14,15 @@ const MESSAGES = {
     TOKEN_EXPIRED: 'Token has expired',
     TOKEN_INVALID: 'Invalid authentication token',
     TOKEN_REQUIRED: 'Authentication token is required',
+    SOCIAL_PROVIDER_UNSUPPORTED: 'Unsupported social login provider',
+    SOCIAL_PROVIDER_NOT_CONFIGURED: 'This social login provider is not configured yet',
+    SOCIAL_PROVIDER_DISABLED: 'This social login provider is disabled by server configuration',
+    SOCIAL_AUTH_CODE_REQUIRED: 'Authorization code is required for social login',
+    SOCIAL_AUTH_STATE_REQUIRED: 'State token is required for social login',
+    SOCIAL_AUTH_STATE_INVALID: 'Invalid or expired social login state token',
+    SOCIAL_AUTH_FAILED: 'Unable to complete social login at this time',
+    SOCIAL_AUTH_EMAIL_REQUIRED: 'Your social account must provide an email address',
+    SOCIAL_AUTH_ACCOUNT_ROLE_CONFLICT: 'This email is already linked to a non-patient account. Use standard login or contact admin.',
   },
 
   // User
@@ -174,6 +183,13 @@ const MESSAGES = {
     USER_REQUIRED: 'User ID is required',
     TYPE_REQUIRED: 'Notification type is required',
     ALREADY_READ: 'Notification is already marked as read',
+    PREFERENCES_FETCH_SUCCESS: 'Notification preferences retrieved successfully',
+    PREFERENCES_UPDATED: 'Notification preferences updated successfully',
+    PUSH_SUBSCRIBED: 'Push notifications enabled for this device',
+    PUSH_UNSUBSCRIBED: 'Push notifications disabled for this device',
+    TEST_PUSH_SENT: 'Test push notification processed',
+    PUSH_SUBSCRIPTION_REQUIRED: 'Push subscription payload is required',
+    PUSH_ENDPOINT_REQUIRED: 'Push subscription endpoint is required',
   },
 
   // Server

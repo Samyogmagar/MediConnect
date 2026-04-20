@@ -3,15 +3,23 @@ import { Calendar, Filter, X } from 'lucide-react';
 import DoctorLayout from '../../components/doctor/DoctorLayout';
 import AppointmentTable from '../../components/doctor/AppointmentTable';
 import StatCard from '../../components/doctor/StatCard';
+import { useToast } from '../../components/common/feedback/ToastProvider';
+import { useModal } from '../../components/common/feedback/ModalProvider';
 import doctorService from '../../services/doctorService';
+import { normalizeAppointmentStatus } from '../../utils/doctorWorkflowStatus.util';
+import RescheduleAppointmentModal from '../../components/doctor/RescheduleAppointmentModal';
 import styles from './Appointments.module.css';
 
 const Appointments = () => {
+  const { showToast } = useToast();
+  const { showConfirm } = useModal();
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [filter, setFilter] = useState('all');
   const [selectedAppointment, setSelectedAppointment] = useState(null);
+  const [rescheduleAppointment, setRescheduleAppointment] = useState(null);
+  const [rescheduling, setRescheduling] = useState(false);
 
   useEffect(() => {
     fetchAppointments();
@@ -32,29 +40,69 @@ const Appointments = () => {
   };
 
   const handleApprove = async (appointment) => {
-    if (!window.confirm(`Approve appointment with ${appointment.patientId?.name}?`)) return;
+    const { confirmed } = await showConfirm({
+      title: 'Approve appointment?',
+      message: `Approve appointment with ${appointment.patientId?.name || 'this patient'}?`,
+      confirmText: 'Approve',
+      cancelText: 'Cancel',
+      confirmVariant: 'success',
+    });
+    if (!confirmed) return;
+
     try {
       await doctorService.approveAppointment(appointment._id);
       setAppointments((prev) =>
         prev.map((a) => (a._id === appointment._id ? { ...a, status: 'confirmed' } : a))
       );
+      showToast({
+        type: 'success',
+        title: 'Appointment approved',
+        message: 'The patient has been notified.',
+      });
     } catch (err) {
       console.error('Error approving appointment:', err);
-      alert('Failed to approve appointment.');
+      showToast({
+        type: 'error',
+        title: 'Approval failed',
+        message: 'Failed to approve appointment.',
+      });
     }
   };
 
   const handleReject = async (appointment) => {
-    const reason = prompt('Reason for rejection:');
-    if (!reason) return;
+    const { confirmed, inputValue } = await showConfirm({
+      title: 'Reject appointment?',
+      message: `Provide a reason for rejecting appointment with ${appointment.patientId?.name || 'this patient'}.`,
+      confirmText: 'Reject',
+      cancelText: 'Cancel',
+      confirmVariant: 'danger',
+      inputConfig: {
+        type: 'textarea',
+        label: 'Rejection reason',
+        placeholder: 'Briefly explain why this appointment is being rejected',
+        required: true,
+        requiredMessage: 'Rejection reason is required.',
+      },
+    });
+    if (!confirmed) return;
+
     try {
-      await doctorService.rejectAppointment(appointment._id, reason);
+      await doctorService.rejectAppointment(appointment._id, inputValue);
       setAppointments((prev) =>
         prev.map((a) => (a._id === appointment._id ? { ...a, status: 'cancelled' } : a))
       );
+      showToast({
+        type: 'success',
+        title: 'Appointment rejected',
+        message: 'The rejection reason has been sent to the patient.',
+      });
     } catch (err) {
       console.error('Error rejecting appointment:', err);
-      alert('Failed to reject appointment.');
+      showToast({
+        type: 'error',
+        title: 'Rejection failed',
+        message: 'Failed to reject appointment.',
+      });
     }
   };
 
@@ -63,15 +111,38 @@ const Appointments = () => {
   };
 
   const handleComplete = async (appointment) => {
-    const notes = prompt('Add consultation notes (optional):') || '';
+    const { confirmed, inputValue } = await showConfirm({
+      title: 'Complete appointment?',
+      message: 'You can add optional consultation notes before marking this appointment as completed.',
+      confirmText: 'Mark completed',
+      cancelText: 'Cancel',
+      confirmVariant: 'success',
+      inputConfig: {
+        type: 'textarea',
+        label: 'Consultation notes (optional)',
+        placeholder: 'Add summary, follow-up advice, or key observations',
+        required: false,
+      },
+    });
+    if (!confirmed) return;
+
     try {
-      await doctorService.completeAppointment(appointment._id, notes);
+      await doctorService.completeAppointment(appointment._id, inputValue || '');
       setAppointments((prev) =>
         prev.map((a) => (a._id === appointment._id ? { ...a, status: 'completed' } : a))
       );
+      showToast({
+        type: 'success',
+        title: 'Appointment completed',
+        message: 'Appointment status updated successfully.',
+      });
     } catch (err) {
       console.error('Error completing appointment:', err);
-      alert(err.response?.data?.message || 'Failed to complete appointment.');
+      showToast({
+        type: 'error',
+        title: 'Completion failed',
+        message: err.response?.data?.message || 'Failed to complete appointment.',
+      });
     }
   };
 
@@ -87,17 +158,52 @@ const Appointments = () => {
     return new Date(d).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
   };
 
-  const normalizeStatus = (status) => {
-    const normalized = (status || '').toLowerCase();
-    if (normalized === 'approved') return 'confirmed';
-    if (normalized === 'rejected') return 'cancelled';
-    return normalized;
+  const handleReschedule = async (appointment) => {
+    setRescheduleAppointment(appointment);
+  };
+
+  const handleRescheduleSubmit = async (payload) => {
+    if (!rescheduleAppointment?._id) return;
+
+    setRescheduling(true);
+    try {
+      const res = await doctorService.rescheduleAppointmentByDoctor(rescheduleAppointment._id, payload);
+      const updated = res?.data?.appointment;
+
+      setAppointments((prev) =>
+        prev.map((a) =>
+          a._id === rescheduleAppointment._id
+            ? {
+                ...a,
+                dateTime: updated?.dateTime || payload.dateTime,
+                status: updated?.status || 'confirmed',
+                notes: updated?.notes || a.notes,
+              }
+            : a
+        )
+      );
+      setRescheduleAppointment(null);
+      showToast({
+        type: 'success',
+        title: 'Appointment rescheduled',
+        message: 'The patient has been notified about the new schedule.',
+      });
+    } catch (err) {
+      console.error('Error rescheduling appointment:', err);
+      showToast({
+        type: 'error',
+        title: 'Reschedule failed',
+        message: err.response?.data?.message || 'Failed to reschedule appointment.',
+      });
+    } finally {
+      setRescheduling(false);
+    }
   };
 
   const counts = appointments.reduce(
     (acc, a) => {
       acc.total++;
-      const s = normalizeStatus(a.status);
+      const s = normalizeAppointmentStatus(a.status);
       acc[s] = (acc[s] || 0) + 1;
       return acc;
     },
@@ -107,7 +213,7 @@ const Appointments = () => {
   const filteredAppointments =
     filter === 'all'
       ? appointments
-      : appointments.filter((a) => normalizeStatus(a.status) === filter);
+      : appointments.filter((a) => normalizeAppointmentStatus(a.status) === filter);
 
   return (
     <DoctorLayout>
@@ -169,6 +275,7 @@ const Appointments = () => {
           onApprove={handleApprove}
           onReject={handleReject}
           onComplete={handleComplete}
+          onReschedule={handleReschedule}
           onView={handleView}
           loading={loading}
         />
@@ -210,8 +317,8 @@ const Appointments = () => {
                 </div>
                 <div className={styles.detailRow}>
                   <span className={styles.detailLabel}>Status</span>
-                  <span className={`${styles.detailValue} ${styles.statusTag} ${styles[normalizeStatus(selectedAppointment.status)]}`}>
-                    {normalizeStatus(selectedAppointment.status)}
+                  <span className={`${styles.detailValue} ${styles.statusTag} ${styles[normalizeAppointmentStatus(selectedAppointment.status)]}`}>
+                    {normalizeAppointmentStatus(selectedAppointment.status)}
                   </span>
                 </div>
                 {selectedAppointment.notes && (
@@ -230,6 +337,14 @@ const Appointments = () => {
             </div>
           </div>
         )}
+
+        <RescheduleAppointmentModal
+          open={Boolean(rescheduleAppointment)}
+          appointment={rescheduleAppointment}
+          onClose={() => setRescheduleAppointment(null)}
+          onSubmit={handleRescheduleSubmit}
+          submitting={rescheduling}
+        />
       </div>
     </DoctorLayout>
   );

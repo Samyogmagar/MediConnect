@@ -1,0 +1,79 @@
+.root {
+  --avatar-size: 48px;
+  position: relative;
+  width: var(--avatar-size);
+  height: var(--avatar-size);
+  flex-shrink: 0;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  background: var(--color-primary-soft);
+  color: var(--color-primary-dark);
+}
+
+.shapeCircle {
+  border-radius: 999px;
+}
+
+.shapeRounded {
+  border-radius: 18px;
+}
+
+.sizeXs {
+  --avatar-size: 30px;
+}
+
+.sizeSm {
+  --avatar-size: 38px;
+}
+
+.sizeMd {
+  --avatar-size: 48px;
+}
+
+.sizeLg {
+  --avatar-size: 78px;
+}
+
+.sizeXl {
+  --avatar-size: 96px;
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: clamp(0.72rem, calc(var(--avatar-size) * 0.27), 1.4rem);
+  letter-spacing: 0.02em;
+}
+
+.statusDot {
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  width: 11px;
+  height: 11px;
+  border-radius: 999px;
+  border: 2px solid var(--color-surface);
+}
+
+.statusOnline {
+  background: var(--color-success);
+}
+
+.statusBusy {
+  background: var(--color-warning);
+}
+
+.statusOffline {
+  background: var(--color-text-muted);
+}

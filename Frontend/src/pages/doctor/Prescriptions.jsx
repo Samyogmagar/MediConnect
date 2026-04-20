@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Pill, Calendar, User, Plus, List, Clock, XCircle, Trash2 } from 'lucide-react';
 import DoctorLayout from '../../components/doctor/DoctorLayout';
+import { useToast } from '../../components/common/feedback/ToastProvider';
+import { useModal } from '../../components/common/feedback/ModalProvider';
 import doctorService from '../../services/doctorService';
 import styles from './Prescriptions.module.css';
 
@@ -38,6 +40,8 @@ const DURATION_UNITS = [
 ];
 
 const Prescriptions = () => {
+  const { showToast } = useToast();
+  const { showConfirm } = useModal();
   const [patients, setPatients] = useState([]);
   const [medications, setMedications] = useState([]);
   const [appointments, setAppointments] = useState([]);
@@ -183,27 +187,65 @@ const Prescriptions = () => {
   );
 
   const handleDiscontinue = async (medicationId) => {
-    const reason = prompt('Reason for discontinuing this medication:');
-    if (!reason) return;
+    const { confirmed, inputValue } = await showConfirm({
+      title: 'Discontinue medication?',
+      message: 'Provide a reason for discontinuing this medication.',
+      confirmText: 'Discontinue',
+      cancelText: 'Cancel',
+      confirmVariant: 'danger',
+      inputConfig: {
+        type: 'textarea',
+        label: 'Reason',
+        placeholder: 'Explain why this medication is being discontinued',
+        required: true,
+        requiredMessage: 'Reason is required.',
+      },
+    });
+    if (!confirmed) return;
+
     try {
-      await doctorService.discontinueMedication(medicationId, reason);
+      await doctorService.discontinueMedication(medicationId, inputValue);
       setMedications((prev) =>
         prev.map((m) => (m._id === medicationId ? { ...m, status: 'discontinued' } : m))
       );
+      showToast({
+        type: 'success',
+        title: 'Medication discontinued',
+        message: 'Prescription status updated to discontinued.',
+      });
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to discontinue medication.');
+      showToast({
+        type: 'error',
+        title: 'Discontinue failed',
+        message: err.response?.data?.message || 'Failed to discontinue medication.',
+      });
     }
   };
 
   const handleDeleteDiscontinued = async (medicationId) => {
-    const confirmed = window.confirm('Delete this discontinued prescription permanently?');
+    const { confirmed } = await showConfirm({
+      title: 'Delete discontinued prescription?',
+      message: 'Delete this discontinued prescription permanently?',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      confirmVariant: 'danger',
+    });
     if (!confirmed) return;
 
     try {
       await doctorService.deleteDiscontinuedMedication(medicationId);
       setMedications((prev) => prev.filter((m) => m._id !== medicationId));
+      showToast({
+        type: 'success',
+        title: 'Prescription deleted',
+        message: 'Discontinued prescription removed successfully.',
+      });
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to delete discontinued prescription.');
+      showToast({
+        type: 'error',
+        title: 'Delete failed',
+        message: err.response?.data?.message || 'Failed to delete discontinued prescription.',
+      });
     }
   };
 

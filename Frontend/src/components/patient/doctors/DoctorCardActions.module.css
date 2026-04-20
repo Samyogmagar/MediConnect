@@ -1,0 +1,26 @@
+.actions {
+  display: flex;
+  gap: 0.55rem;
+  justify-content: flex-end;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.secondaryBtn {
+  min-width: 120px;
+}
+
+.primaryBtn {
+  min-width: 150px;
+}
+
+@media (max-width: 640px) {
+  .actions {
+    width: 100%;
+  }
+
+  .secondaryBtn,
+  .primaryBtn {
+    width: 100%;
+  }
+}

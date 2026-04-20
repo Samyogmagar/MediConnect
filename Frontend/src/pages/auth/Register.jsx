@@ -1,30 +1,32 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { User, Mail, Lock, Info, Upload, X, CheckCircle } from 'lucide-react';
+import { User, Mail, Lock, Info, Phone, Calendar } from 'lucide-react';
 import AuthLayout from '../../components/auth/AuthLayout';
 import AuthInput from '../../components/auth/AuthInput';
+import SocialLoginButtons from '../../components/auth/SocialLoginButtons';
 import Button from '../../components/common/Button';
+import { useToast } from '../../components/common/feedback/ToastProvider';
 import useAuth from '../../hooks/useAuth';
 import styles from './Register.module.css';
 
 const Register = () => {
   const navigate = useNavigate();
   const { register } = useAuth();
+  const { showToast } = useToast();
 
   const [formData, setFormData] = useState({
-    name: '',
+    fullName: '',
     email: '',
+    phone: '',
     password: '',
     confirmPassword: '',
-    role: 'patient',
-    licenseNumber: '',
-    specialization: '',
+    dob: '',
+    gender: '',
   });
   const [errors, setErrors] = useState({});
   const [apiError, setApiError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [documents, setDocuments] = useState([]);
-  const [successModal, setSuccessModal] = useState(null);
+  const [showOptional, setShowOptional] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -38,16 +40,22 @@ const Register = () => {
   const validate = () => {
     const newErrors = {};
 
-    if (!formData.name.trim()) {
-      newErrors.name = 'Full name is required';
-    } else if (formData.name.trim().length < 2) {
-      newErrors.name = 'Name must be at least 2 characters';
+    if (!formData.fullName.trim()) {
+      newErrors.fullName = 'Full name is required';
+    } else if (formData.fullName.trim().length < 2) {
+      newErrors.fullName = 'Name must be at least 2 characters';
     }
 
     if (!formData.email.trim()) {
       newErrors.email = 'Email is required';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = 'Please enter a valid email';
+    }
+
+    if (!formData.phone.trim()) {
+      newErrors.phone = 'Phone number is required';
+    } else if (!/^\+?[0-9\s-]{7,15}$/.test(formData.phone.trim())) {
+      newErrors.phone = 'Enter a valid phone number';
     }
 
     if (!formData.password) {
@@ -62,44 +70,7 @@ const Register = () => {
       newErrors.confirmPassword = 'Passwords do not match';
     }
 
-    if (formData.role === 'doctor') {
-      if (!formData.licenseNumber.trim()) {
-        newErrors.licenseNumber = 'Medical license number is required';
-      }
-      if (!formData.specialization.trim()) {
-        newErrors.specialization = 'Specialization is required';
-      }
-    }
-
-    if (formData.role === 'lab') {
-      if (!formData.licenseNumber.trim()) {
-        newErrors.licenseNumber = 'Lab license number is required';
-      }
-    }
-
-    if (formData.role !== 'patient' && documents.length === 0) {
-      newErrors.documents = 'Please upload supporting documents';
-    }
-
     return newErrors;
-  };
-
-  const handleFileChange = (e) => {
-    const files = Array.from(e.target.files || []);
-    if (files.length === 0) return;
-    setDocuments((prev) => [...prev, ...files]);
-    if (errors.documents) {
-      setErrors((prev) => ({ ...prev, documents: '' }));
-    }
-  };
-
-  const removeDocument = (index) => {
-    setDocuments((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  const handleSuccessModalClose = () => {
-    setSuccessModal(null);
-    navigate('/login');
   };
 
   const handleSubmit = async (e) => {
@@ -115,28 +86,24 @@ const Register = () => {
     setLoading(true);
     try {
       const registrationData = {
-        name: formData.name.trim(),
+        fullName: formData.fullName.trim(),
         email: formData.email.trim(),
+        phone: formData.phone.trim(),
         password: formData.password,
         confirmPassword: formData.confirmPassword,
-        role: formData.role,
-        licenseNumber: formData.licenseNumber.trim() || undefined,
-        specialization: formData.specialization.trim() || undefined,
+        dob: formData.dob,
+        gender: formData.gender,
       };
 
       await register(registrationData);
 
-      if (formData.role === 'doctor' || formData.role === 'lab') {
-        setSuccessModal({ role: formData.role, name: formData.name.trim() });
-        return;
-      }
-
-      navigate('/login', {
-        state: {
-          message: 'Registration successful! Please log in.',
-          type: 'success',
-        },
+      showToast({
+        type: 'success',
+        title: 'Registration successful',
+        message: 'Your account has been created successfully. Please log in.',
       });
+
+      navigate('/login');
     } catch (err) {
       const message =
         err.response?.data?.message || 'Registration failed. Please try again.';
@@ -171,15 +138,19 @@ const Register = () => {
         )}
 
         <form onSubmit={handleSubmit} noValidate>
+          <div className={styles.inputGroup}>
+            <p className={styles.label}>Account Information</p>
+          </div>
+
           <AuthInput
             label="Full Name"
             type="text"
-            name="name"
-            value={formData.name}
+            name="fullName"
+            value={formData.fullName}
             onChange={handleChange}
             placeholder="John Doe"
             icon={User}
-            error={errors.name}
+            error={errors.fullName}
             autoComplete="name"
             required
           />
@@ -197,147 +168,18 @@ const Register = () => {
             required
           />
 
-          {/* Professional Details for Doctors */}
-          {formData.role === 'doctor' && (
-            <>
-              <AuthInput
-                label="Medical License Number"
-                type="text"
-                name="licenseNumber"
-                value={formData.licenseNumber}
-                onChange={handleChange}
-                placeholder="NMC-12345"
-                icon={Info}
-                error={errors.licenseNumber}
-                required
-              />
-
-              <AuthInput
-                label="Specialization"
-                type="text"
-                name="specialization"
-                value={formData.specialization}
-                onChange={handleChange}
-                placeholder="e.g., Cardiology, Pediatrics"
-                icon={Info}
-                error={errors.specialization}
-                required
-              />
-
-              {/* Document Upload */}
-              <div className={styles.inputGroup}>
-                <label htmlFor="documents" className={styles.label}>
-                  Upload Documents <span className={styles.required}>*</span>
-                </label>
-                <p className={styles.helpText}>
-                  Upload your medical license, certificates, or ID proof (Images or PDF, max 5MB each)
-                </p>
-                <div className={styles.fileUploadContainer}>
-                  <label htmlFor="documents" className={styles.fileUploadLabel}>
-                    <Upload size={20} />
-                    <span>Click to upload or drag and drop</span>
-                  </label>
-                  <input
-                    type="file"
-                    id="documents"
-                    name="documents"
-                    multiple
-                    accept="image/*,.pdf"
-                    onChange={handleFileChange}
-                    className={styles.fileInput}
-                  />
-                </div>
-                {errors.documents && (
-                  <span className={styles.errorText}>{errors.documents}</span>
-                )}
-                {documents.length > 0 && (
-                  <div className={styles.fileList}>
-                    {documents.map((file, index) => (
-                      <div key={index} className={styles.fileItem}>
-                        <span className={styles.fileName}>{file.name}</span>
-                        <span className={styles.fileSize}>
-                          ({(file.size / 1024).toFixed(1)} KB)
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => removeDocument(index)}
-                          className={styles.removeBtn}
-                          title="Remove file"
-                        >
-                          <X size={16} />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </>
-          )}
-
-          {/* Professional Details for Labs */}
-          {formData.role === 'lab' && (
-            <>
-              <AuthInput
-                label="Lab License Number"
-                type="text"
-                name="licenseNumber"
-                value={formData.licenseNumber}
-                onChange={handleChange}
-                placeholder="LAB-12345"
-                icon={Info}
-                error={errors.licenseNumber}
-                required
-              />
-
-              {/* Document Upload */}
-              <div className={styles.inputGroup}>
-                <label htmlFor="documents" className={styles.label}>
-                  Upload Documents <span className={styles.required}>*</span>
-                </label>
-                <p className={styles.helpText}>
-                  Upload your lab license, accreditation certificates, or registration documents (Images or PDF, max 5MB each)
-                </p>
-                <div className={styles.fileUploadContainer}>
-                  <label htmlFor="documents" className={styles.fileUploadLabel}>
-                    <Upload size={20} />
-                    <span>Click to upload or drag and drop</span>
-                  </label>
-                  <input
-                    type="file"
-                    id="documents"
-                    name="documents"
-                    multiple
-                    accept="image/*,.pdf"
-                    onChange={handleFileChange}
-                    className={styles.fileInput}
-                  />
-                </div>
-                {errors.documents && (
-                  <span className={styles.errorText}>{errors.documents}</span>
-                )}
-                {documents.length > 0 && (
-                  <div className={styles.fileList}>
-                    {documents.map((file, index) => (
-                      <div key={index} className={styles.fileItem}>
-                        <span className={styles.fileName}>{file.name}</span>
-                        <span className={styles.fileSize}>
-                          ({(file.size / 1024).toFixed(1)} KB)
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => removeDocument(index)}
-                          className={styles.removeBtn}
-                          title="Remove file"
-                        >
-                          <X size={16} />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </>
-          )}
+          <AuthInput
+            label="Phone Number"
+            type="text"
+            name="phone"
+            value={formData.phone}
+            onChange={handleChange}
+            placeholder="98XXXXXXXX"
+            icon={Phone}
+            error={errors.phone}
+            autoComplete="tel"
+            required
+          />
 
           <AuthInput
             label="Password"
@@ -351,6 +193,52 @@ const Register = () => {
             autoComplete="new-password"
             required
           />
+
+          <button
+            type="button"
+            className={styles.optionalToggle}
+            onClick={() => setShowOptional((prev) => !prev)}
+          >
+            {showOptional ? 'Hide optional details' : 'Add optional details (DOB, Gender)'}
+          </button>
+
+          {showOptional && (
+            <>
+              <div className={styles.inputGroup}>
+                <p className={styles.label}>Optional Personal Information</p>
+              </div>
+
+              <AuthInput
+                label="Date of Birth"
+                type="date"
+                name="dob"
+                value={formData.dob}
+                onChange={handleChange}
+                icon={Calendar}
+                error={errors.dob}
+              />
+
+              <div className={styles.inputGroup}>
+                <label className={styles.label} htmlFor="gender">Gender</label>
+                <div className={styles.inputWrapper}>
+                  <span className={styles.iconWrap}><Info size={18} /></span>
+                  <select
+                    id="gender"
+                    name="gender"
+                    value={formData.gender}
+                    onChange={handleChange}
+                    className={styles.select}
+                  >
+                    <option value="">Select gender</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+                {errors.gender && <p className={styles.errorText}>{errors.gender}</p>}
+              </div>
+            </>
+          )}
 
           <AuthInput
             label="Confirm Password"
@@ -374,16 +262,22 @@ const Register = () => {
           >
             Create Account
           </Button>
+
+          <SocialLoginButtons
+            intent="register"
+            onError={setApiError}
+            showUnavailable
+          />
         </form>
 
         <div className={styles.infoBox}>
           <Info size={16} className={styles.infoIcon} />
           <div>
-            <p className={styles.infoTitle}>Professional Verification</p>
+            <p className={styles.infoTitle}>Patient Registration</p>
             <p className={styles.infoText}>
-              Doctor and laboratory accounts require admin verification before
-              full access is granted. You will be notified once your account is
-              verified.
+              This form is only for patient signup in MediConnect hospital.
+              Doctors, lab staff, and admins are created by Super Admin. You can
+              complete additional profile details after login.
             </p>
           </div>
         </div>
@@ -399,38 +293,6 @@ const Register = () => {
           By registering, you agree to our Terms of Service and Privacy Policy
         </p>
       </div>
-
-      {/* Success Modal for Doctor/Lab Registration */}
-      {successModal && (
-        <div className={styles.modalOverlay}>
-          <div className={styles.modalContent}>
-            <div className={styles.modalIcon}>
-              <CheckCircle size={48} />
-            </div>
-            <h3 className={styles.modalTitle}>Registration Successful!</h3>
-            <p className={styles.modalMessage}>
-              Thank you for registering as a <strong>{successModal.role}</strong>, {successModal.name}!
-            </p>
-            <p className={styles.modalMessage}>
-              Your account has been created successfully. Your documents and credentials are
-              currently being verified by our admin team.
-            </p>
-            <p className={styles.modalMessage}>
-              <strong>✓</strong> You will receive a notification once your account is verified<br />
-              <strong>✓</strong> Check your email for further updates<br />
-              <strong>✓</strong> You'll be able to access all features after verification
-            </p>
-            <Button
-              onClick={handleSuccessModalClose}
-              variant="primary"
-              fullWidth
-              size="lg"
-            >
-              Continue to Login
-            </Button>
-          </div>
-        </div>
-      )}
     </AuthLayout>
   );
 };

@@ -16,10 +16,14 @@ import FilterToolbar from '../../components/admin/FilterToolbar';
 import StatCard from '../../components/admin/StatCard';
 import DataTable from '../../components/admin/DataTable';
 import StatusBadge from '../../components/admin/StatusBadge';
+import { useToast } from '../../components/common/feedback/ToastProvider';
+import { useModal } from '../../components/common/feedback/ModalProvider';
 import adminService from '../../services/adminService';
 import styles from './Users.module.css';
 
 const Users = () => {
+  const { showToast } = useToast();
+  const { showConfirm } = useModal();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -89,27 +93,50 @@ const Users = () => {
   };
 
   const handleVerify = async (userId) => {
-    if (!window.confirm('Are you sure you want to verify this account?')) return;
+    const { confirmed } = await showConfirm({
+      title: 'Verify account?',
+      message: 'Are you sure you want to verify this account?',
+      confirmText: 'Verify',
+      cancelText: 'Cancel',
+      confirmVariant: 'success',
+    });
+    if (!confirmed) return;
     
     try {
       await adminService.verifyUser(userId);
-      alert('Account verified successfully!');
+      showToast({ type: 'success', title: 'Account verified', message: 'Account verified successfully.' });
       fetchUsers();
     } catch (err) {
       console.error('Verify error:', err);
-      alert('Failed to verify account: ' + (err.response?.data?.message || 'Unknown error'));
+      showToast({
+        type: 'error',
+        title: 'Verify failed',
+        message: `Failed to verify account: ${err.response?.data?.message || 'Unknown error'}`,
+      });
     }
   };
 
   const handleUnverify = async (userId) => {
-    if (!window.confirm('Are you sure you want to unverify this account?')) return;
+    const { confirmed } = await showConfirm({
+      title: 'Unverify account?',
+      message: 'Are you sure you want to unverify this account?',
+      confirmText: 'Unverify',
+      cancelText: 'Cancel',
+      confirmVariant: 'danger',
+    });
+    if (!confirmed) return;
+
     try {
       await adminService.unverifyUser(userId);
-      alert('Account unverified successfully.');
+      showToast({ type: 'success', title: 'Account unverified', message: 'Account unverified successfully.' });
       fetchUsers();
     } catch (err) {
       console.error('Unverify error:', err);
-      alert('Failed to unverify account: ' + (err.response?.data?.message || 'Unknown error'));
+      showToast({
+        type: 'error',
+        title: 'Unverify failed',
+        message: `Failed to unverify account: ${err.response?.data?.message || 'Unknown error'}`,
+      });
     }
   };
 
@@ -122,13 +149,24 @@ const Users = () => {
     const confirmText = nextStatus
       ? 'Activate this user account?'
       : 'Deactivate this user account? They will not be able to sign in.';
-    if (!window.confirm(confirmText)) return;
+    const { confirmed } = await showConfirm({
+      title: nextStatus ? 'Activate account?' : 'Deactivate account?',
+      message: confirmText,
+      confirmText: nextStatus ? 'Activate' : 'Deactivate',
+      cancelText: 'Cancel',
+      confirmVariant: nextStatus ? 'success' : 'danger',
+    });
+    if (!confirmed) return;
 
     try {
       const res = await adminService.updateUserStatus(user._id, nextStatus);
       setUsers((prev) => prev.map((u) => (u._id === user._id ? res.data?.user || u : u)));
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to update user status.');
+      showToast({
+        type: 'error',
+        title: 'Status update failed',
+        message: err.response?.data?.message || 'Failed to update user status.',
+      });
     }
   };
 

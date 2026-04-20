@@ -384,8 +384,8 @@ class DiagnosticTestService {
       throw { statusCode: 403, message: MESSAGES.DIAGNOSTIC.DOCTOR_ONLY };
     }
 
-    // Cannot cancel completed tests
-    if (test.status === 'completed') {
+    // Cannot cancel tests once report is uploaded
+    if (test.status === 'report_uploaded') {
       throw { statusCode: 400, message: MESSAGES.DIAGNOSTIC.CANNOT_MODIFY };
     }
 

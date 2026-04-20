@@ -6,8 +6,11 @@ import {
   Clock, Shield, Clipboard, Plus, X
 } from 'lucide-react';
 import DoctorLayout from '../../components/doctor/DoctorLayout';
+import { useToast } from '../../components/common/feedback/ToastProvider';
 import doctorService from '../../services/doctorService';
 import medicalRecordService from '../../services/medicalRecordService';
+import { resolveAssetUrl } from '../../utils/assetUrl.util';
+import { isDiagnosticReportReady, normalizeDiagnosticStatus } from '../../utils/doctorWorkflowStatus.util';
 import styles from './MedicalRecords.module.css';
 
 // Demo/sample medical data for new patients or when records are empty
@@ -45,6 +48,7 @@ const DEMO_IMMUNIZATIONS = [
 
 
 const MedicalRecords = () => {
+  const { showToast } = useToast();
   const [searchParams] = useSearchParams();
   const location = useLocation();
   const patientId = searchParams.get('patientId');
@@ -141,11 +145,11 @@ const MedicalRecords = () => {
       console.log('✅ Medical record refresh completed');
       
       handleCloseModal();
-      alert('Vital signs added successfully!');
+      showToast({ type: 'success', title: 'Vitals added', message: 'Vital signs added successfully.' });
     } catch (err) {
       console.error('Error adding vitals:', err);
       const errorMessage = err.response?.data?.message || err.message || 'Unknown error occurred';
-      alert(`Failed to add vital signs: ${errorMessage}`);
+      showToast({ type: 'error', title: 'Vitals update failed', message: `Failed to add vital signs: ${errorMessage}` });
     } finally {
       setSubmitting(false);
     }
@@ -157,7 +161,7 @@ const MedicalRecords = () => {
     try {
       // Validate required fields
       if (!formData.allergen) {
-        alert('Allergen name is required.');
+        showToast({ type: 'error', title: 'Validation error', message: 'Allergen name is required.' });
         setSubmitting(false);
         return;
       }
@@ -177,11 +181,11 @@ const MedicalRecords = () => {
       await medicalRecordService.addAllergy(patientId, allergyData);
       await fetchMedicalRecord();
       handleCloseModal();
-      alert('Allergy added successfully!');
+      showToast({ type: 'success', title: 'Allergy added', message: 'Allergy added successfully.' });
     } catch (err) {
       console.error('Error adding allergy:', err);
       const errorMessage = err.response?.data?.message || err.message || 'Unknown error occurred';
-      alert(`Failed to add allergy: ${errorMessage}`);
+      showToast({ type: 'error', title: 'Allergy update failed', message: `Failed to add allergy: ${errorMessage}` });
     } finally {
       setSubmitting(false);
     }
@@ -193,7 +197,7 @@ const MedicalRecords = () => {
     try {
       // Validate required fields
       if (!formData.name) {
-        alert('Condition name is required.');
+        showToast({ type: 'error', title: 'Validation error', message: 'Condition name is required.' });
         setSubmitting(false);
         return;
       }
@@ -214,11 +218,11 @@ const MedicalRecords = () => {
       await medicalRecordService.addCondition(patientId, conditionData);
       await fetchMedicalRecord();
       handleCloseModal();
-      alert('Condition added successfully!');
+      showToast({ type: 'success', title: 'Condition added', message: 'Condition added successfully.' });
     } catch (err) {
       console.error('Error adding condition:', err);
       const errorMessage = err.response?.data?.message || err.message || 'Unknown error occurred';
-      alert(`Failed to add condition: ${errorMessage}`);
+      showToast({ type: 'error', title: 'Condition update failed', message: `Failed to add condition: ${errorMessage}` });
     } finally {
       setSubmitting(false);
     }
@@ -230,7 +234,7 @@ const MedicalRecords = () => {
     try {
       // Validate required fields
       if (!formData.vaccineName || !formData.administeredDate) {
-        alert('Vaccine name and administered date are required.');
+        showToast({ type: 'error', title: 'Validation error', message: 'Vaccine name and administered date are required.' });
         setSubmitting(false);
         return;
       }
@@ -255,11 +259,11 @@ const MedicalRecords = () => {
       await medicalRecordService.addImmunization(patientId, immunizationData);
       await fetchMedicalRecord();
       handleCloseModal();
-      alert('Immunization added successfully!');
+      showToast({ type: 'success', title: 'Immunization added', message: 'Immunization added successfully.' });
     } catch (err) {
       console.error('Error adding immunization:', err);
       const errorMessage = err.response?.data?.message || err.message || 'Unknown error occurred';
-      alert(`Failed to add immunization: ${errorMessage}`);
+      showToast({ type: 'error', title: 'Immunization update failed', message: `Failed to add immunization: ${errorMessage}` });
     } finally {
       setSubmitting(false);
     }
@@ -271,7 +275,7 @@ const MedicalRecords = () => {
     try {
       // Validate required fields
       if (!formData.testName || !formData.orderedDate) {
-        alert('Test name and ordered date are required.');
+        showToast({ type: 'error', title: 'Validation error', message: 'Test name and ordered date are required.' });
         setSubmitting(false);
         return;
       }
@@ -296,11 +300,11 @@ const MedicalRecords = () => {
       await medicalRecordService.addLabResult(patientId, labResultData);
       await fetchMedicalRecord();
       handleCloseModal();
-      alert('Lab result added successfully!');
+      showToast({ type: 'success', title: 'Lab result added', message: 'Lab result added successfully.' });
     } catch (err) {
       console.error('Error adding lab result:', err);
       const errorMessage = err.response?.data?.message || err.message || 'Unknown error occurred';
-      alert(`Failed to add lab result: ${errorMessage}`);
+      showToast({ type: 'error', title: 'Lab result update failed', message: `Failed to add lab result: ${errorMessage}` });
     } finally {
       setSubmitting(false);
     }
@@ -352,7 +356,7 @@ const MedicalRecords = () => {
   const conditions = medicalRecord?.conditions || [];
   const immunizations = medicalRecord?.immunizations || [];
   // Get lab results from diagnostic tests that have uploaded reports
-  const labResults = diagnostics.filter(test => test.status === 'completed' && test.report && test.report.url);
+  const labResults = diagnostics.filter((test) => isDiagnosticReportReady(test));
   
   // Debug logging for vitals
   console.log('🔍 Debug - Medical Record:', medicalRecord);
@@ -719,7 +723,7 @@ const MedicalRecords = () => {
                         <div className={styles.labResultMeta}>
                           <span><Calendar size={13} /> {formatDate(test.report?.uploadedAt || test.updatedAt)}</span>
                           <span className={`${styles.statusBadge} ${styles.completed}`}>
-                            {test.status}
+                            {normalizeDiagnosticStatus(test.status)}
                           </span>
                         </div>
                       </div>
@@ -761,7 +765,7 @@ const MedicalRecords = () => {
                           </div>
                           <button 
                             className={styles.viewReportBtn}
-                            onClick={() => window.open(test.report.url, '_blank')}
+                            onClick={() => window.open(resolveAssetUrl(test.report.url), '_blank')}
                           >
                             View Report
                           </button>

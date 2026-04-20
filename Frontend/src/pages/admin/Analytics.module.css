@@ -1,4 +1,4 @@
-.page {
+﻿.page {
   max-width: 1200px;
   margin: 0 auto;
 }
@@ -74,7 +74,7 @@
 }
 
 .barAlt {
-  background: linear-gradient(180deg, #14b8a6, #0f766e);
+  background: linear-gradient(180deg, #3b82f6, #2563eb);
 }
 
 .list {
@@ -133,3 +133,4 @@
     grid-template-columns: 1fr;
   }
 }
+

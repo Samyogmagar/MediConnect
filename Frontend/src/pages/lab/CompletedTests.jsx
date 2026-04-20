@@ -3,10 +3,13 @@ import { Filter } from 'lucide-react';
 import LabLayout from '../../components/lab/LabLayout';
 import StatCard from '../../components/lab/StatCard';
 import ReportListTable from '../../components/lab/ReportListTable';
+import { useToast } from '../../components/common/feedback/ToastProvider';
 import labService from '../../services/labService';
+import { resolveAssetUrl } from '../../utils/assetUrl.util';
 import styles from './CompletedTests.module.css';
 
 const CompletedTests = () => {
+  const { showToast } = useToast();
   const [tests, setTests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -83,23 +86,31 @@ const CompletedTests = () => {
 
   const handleView = (test) => {
     if (test.report?.url) {
-      window.open(test.report.url, '_blank');
+      window.open(resolveAssetUrl(test.report.url), '_blank');
     } else {
-      alert('No report file available for this test.');
+      showToast({
+        type: 'info',
+        title: 'No report file',
+        message: 'No report file available for this test.',
+      });
     }
   };
 
   const handleDownload = (test) => {
     if (test.report?.url) {
       const link = document.createElement('a');
-      link.href = test.report.url;
+      link.href = resolveAssetUrl(test.report.url);
       link.download = test.report.filename || `report-${test._id}.pdf`;
       link.target = '_blank';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
     } else {
-      alert('No report file available for download.');
+      showToast({
+        type: 'info',
+        title: 'No downloadable file',
+        message: 'No report file available for download.',
+      });
     }
   };
 

@@ -2,6 +2,7 @@ import { useState, useEffect, createElement } from 'react';
 import { FileText, Pill, FlaskConical, ChevronDown, ChevronUp, Download, Eye, Calendar, Clock } from 'lucide-react';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import medicalRecordService from '../../services/medicalRecordService';
+import { resolveAssetUrl } from '../../utils/assetUrl.util';
 import styles from './MedicalRecords.module.css';
 
 const TABS = [
@@ -129,7 +130,7 @@ const MedicalRecords = () => {
                     className={styles.viewReportBtn}
                     onClick={(e) => {
                       e.stopPropagation();
-                      window.open(test.report.url, '_blank');
+                      window.open(resolveAssetUrl(test.report.url), '_blank');
                     }}
                   >
                     <Eye size={14} />
@@ -197,7 +198,7 @@ const MedicalRecords = () => {
                         </div>
                         <button
                           className={styles.downloadBtn}
-                          onClick={() => window.open(test.report.url, '_blank')}
+                          onClick={() => window.open(resolveAssetUrl(test.report.url), '_blank')}
                         >
                           <Download size={16} />
                           Download

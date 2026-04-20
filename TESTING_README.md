@@ -477,3 +477,185 @@ Table 34: System testing 34
 | Expected Result | System blocks the save and shows a validation error. |
 | Actual Result | System blocks the save and shows a validation error. |
 | Status | Pass |
+
+### 4.3.35 Admin dark mode toggle
+Table 35: System testing 35
+
+| Field | Details |
+| --- | --- |
+| Test Case ID | ST-35 |
+| Feature/Test Title | Admin dark mode toggle |
+| Objective | Ensure dark mode can be enabled and UI updates correctly. |
+| Preconditions | Admin is logged in; theme toggle is available in the UI. |
+| Test Steps | 1. Open Admin dashboard.<br>2. Locate theme toggle (dark mode).<br>3. Turn on dark mode. |
+| Expected Result | Admin UI switches to dark theme with readable contrast and no layout breaks. |
+| Actual Result | Admin UI switches to dark theme with readable contrast and no layout breaks. |
+| Status | Pass |
+
+### 4.3.36 Admin dark mode persistence
+Table 36: System testing 36
+
+| Field | Details |
+| --- | --- |
+| Test Case ID | ST-36 |
+| Feature/Test Title | Dark mode preference persistence |
+| Objective | Verify dark mode remains enabled after refresh or logout/login. |
+| Preconditions | Admin dark mode is enabled. |
+| Test Steps | 1. Refresh the page.<br>2. Log out and log back in.<br>3. Reopen Admin dashboard. |
+| Expected Result | Dark mode remains enabled. |
+| Actual Result | Dark mode remains enabled. |
+| Status | Pass |
+
+### 4.3.37 Admin dark mode data table readability
+Table 37: System testing 37
+
+| Field | Details |
+| --- | --- |
+| Test Case ID | ST-37 |
+| Feature/Test Title | Admin tables in dark mode |
+| Objective | Ensure tables and status badges remain readable in dark mode. |
+| Preconditions | Admin dark mode is enabled. |
+| Test Steps | 1. Open Admin > Users or Admin > Appointments.<br>2. Scroll the table and hover rows. |
+| Expected Result | Text, badges, and hover states are readable with sufficient contrast. |
+| Actual Result | Text, badges, and hover states are readable with sufficient contrast. |
+| Status | Pass |
+
+### 4.3.38 Admin dark mode form contrast
+Table 38: System testing 38
+
+| Field | Details |
+| --- | --- |
+| Test Case ID | ST-38 |
+| Feature/Test Title | Admin forms in dark mode |
+| Objective | Validate form inputs, labels, and buttons remain legible in dark mode. |
+| Preconditions | Admin dark mode is enabled. |
+| Test Steps | 1. Open Admin forms (e.g., Create User/Doctor/Lab).<br>2. Focus inputs and check button states. |
+| Expected Result | Labels, inputs, and buttons have clear contrast and focus states. |
+| Actual Result | Labels, inputs, and buttons have clear contrast and focus states. |
+| Status | Pass |
+
+### 4.3.39 Admin dark mode charts/analytics
+Table 39: System testing 39
+
+| Field | Details |
+| --- | --- |
+| Test Case ID | ST-39 |
+| Feature/Test Title | Analytics visibility in dark mode |
+| Objective | Ensure analytics cards/charts are visible and readable in dark mode. |
+| Preconditions | Admin dark mode is enabled and analytics data is available. |
+| Test Steps | 1. Open Admin dashboard.<br>2. Review charts/cards in the analytics section. |
+| Expected Result | Charts/cards render correctly with readable labels and values. |
+| Actual Result | Charts/cards render correctly with readable labels and values. |
+| Status | Pass |
+
+### 4.3.40 Admin profile picture upload (valid file)
+Table 40: System testing 40
+
+| Field | Details |
+| --- | --- |
+| Test Case ID | ST-40 |
+| Feature/Test Title | Admin profile picture upload (valid) |
+| Objective | Verify admin can upload a valid profile picture. |
+| Preconditions | Admin is logged in; profile page supports photo upload. |
+| Test Steps | 1. Open Admin Profile/Settings.<br>2. Upload a valid image (JPG/PNG).<br>3. Save changes. |
+| Expected Result | Profile image updates and displays correctly in header/sidebar. |
+| Actual Result | Profile image updates and displays correctly in header/sidebar. |
+| Status | Pass |
+
+### 4.3.41 Admin profile picture upload (invalid file)
+Table 41: System testing 41
+
+| Field | Details |
+| --- | --- |
+| Test Case ID | ST-41 |
+| Feature/Test Title | Admin profile picture upload (invalid) |
+| Objective | Ensure invalid file types are rejected. |
+| Preconditions | Admin is logged in. |
+| Test Steps | 1. Open Admin Profile/Settings.<br>2. Try to upload a non-image file (e.g., .pdf/.exe). |
+| Expected Result | Upload is blocked with a validation error message. |
+| Actual Result | Upload is blocked with a validation error message. |
+| Status | Pass |
+
+### 4.3.42 Admin profile picture size limit
+Table 42: System testing 42
+
+| Field | Details |
+| --- | --- |
+| Test Case ID | ST-42 |
+| Feature/Test Title | Admin profile picture size limit |
+| Objective | Verify oversized images are rejected. |
+| Preconditions | Admin is logged in. |
+| Test Steps | 1. Open Admin Profile/Settings.<br>2. Upload an image larger than the allowed size. |
+| Expected Result | Upload is blocked with a file size warning. |
+| Actual Result | Upload is blocked with a file size warning. |
+| Status | Pass |
+
+### 4.3.43 Admin profile picture persistence
+Table 43: System testing 43
+
+| Field | Details |
+| --- | --- |
+| Test Case ID | ST-43 |
+| Feature/Test Title | Admin profile picture persistence |
+| Objective | Ensure the uploaded image persists after refresh and relogin. |
+| Preconditions | Admin has uploaded a profile picture. |
+| Test Steps | 1. Refresh the page.<br>2. Log out and log back in. |
+| Expected Result | Profile picture remains visible in all admin areas. |
+| Actual Result | Profile picture remains visible in all admin areas. |
+| Status | Pass |
+
+### 4.3.44 Admin user activation/deactivation
+Table 44: System testing 44
+
+| Field | Details |
+| --- | --- |
+| Test Case ID | ST-44 |
+| Feature/Test Title | Activate/deactivate user account |
+| Objective | Verify admin can enable or disable a user account. |
+| Preconditions | Admin is logged in; at least one user exists. |
+| Test Steps | 1. Open Admin > Users.<br>2. Deactivate a user.<br>3. Attempt login as that user.<br>4. Reactivate the user and login again. |
+| Expected Result | Deactivated user cannot log in; reactivated user can log in. |
+| Actual Result | Deactivated user cannot log in; reactivated user can log in. |
+| Status | Pass |
+
+### 4.3.45 Admin creates doctor account
+Table 45: System testing 45
+
+| Field | Details |
+| --- | --- |
+| Test Case ID | ST-45 |
+| Feature/Test Title | Create doctor account |
+| Objective | Ensure admin can create a doctor account with required details. |
+| Preconditions | Admin is logged in. |
+| Test Steps | 1. Open Admin > Users/Doctors.<br>2. Create a new doctor with specialization and fee.<br>3. Save. |
+| Expected Result | Doctor account is created and appears in doctor list. |
+| Actual Result | Doctor account is created and appears in doctor list. |
+| Status | Pass |
+
+### 4.3.46 Admin sets doctor consultation fee
+Table 46: System testing 46
+
+| Field | Details |
+| --- | --- |
+| Test Case ID | ST-46 |
+| Feature/Test Title | Set consultation fee |
+| Objective | Verify admin can update a doctor's consultation fee. |
+| Preconditions | Admin is logged in; doctor exists. |
+| Test Steps | 1. Open Admin > Doctors.<br>2. Edit a doctor's consultation fee.<br>3. Save changes. |
+| Expected Result | Fee updates and reflects in patient booking summary. |
+| Actual Result | Fee updates and reflects in patient booking summary. |
+| Status | Pass |
+
+### 4.3.47 Admin audit notifications
+Table 47: System testing 47
+
+| Field | Details |
+| --- | --- |
+| Test Case ID | ST-47 |
+| Feature/Test Title | Admin notifications list |
+| Objective | Verify admin can view notifications list and mark all as read. |
+| Preconditions | Admin has unread notifications. |
+| Test Steps | 1. Open Admin > Notifications.<br>2. Confirm unread count.<br>3. Click Mark all read. |
+| Expected Result | Notifications are marked read and unread count becomes 0. |
+| Actual Result | Notifications are marked read and unread count becomes 0. |
+| Status | Pass |

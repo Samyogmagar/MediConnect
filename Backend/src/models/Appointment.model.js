@@ -12,6 +12,10 @@ const appointmentSchema = new mongoose.Schema(
       ref: 'User',
       required: [true, 'Doctor ID is required'],
     },
+    followUpOf: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Appointment',
+    },
     dateTime: {
       type: Date,
       required: [true, 'Appointment date and time is required'],

@@ -104,6 +104,19 @@ router.put(
   appointmentController.completeAppointment
 );
 
+/**
+ * @route   PUT /api/appointments/:id/reschedule-by-doctor
+ * @desc    Reschedule a pending/confirmed appointment by doctor
+ * @access  Private (Doctor only - assigned appointments, verified doctors only)
+ * @body    { dateTime, reason? }
+ */
+router.put(
+  '/:id/reschedule-by-doctor',
+  roleMiddleware([ROLES.DOCTOR]),
+  verificationMiddleware,
+  appointmentController.rescheduleAppointmentByDoctor
+);
+
 // ==================== SHARED ROUTES (Patient, Doctor, Admin) ====================
 
 /**

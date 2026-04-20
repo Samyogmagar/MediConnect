@@ -31,18 +31,18 @@
 }
 
 .green {
-  background: #ecfdf5;
-  color: #059669;
+  background: var(--status-active-bg);
+  color: var(--status-active-text);
 }
 
 .red {
-  background: #fef2f2;
-  color: #dc2626;
+  background: var(--status-cancelled-bg);
+  color: var(--status-cancelled-text);
 }
 
 .yellow {
-  background: #fffbeb;
-  color: #d97706;
+  background: var(--status-pending-bg);
+  color: var(--status-pending-text);
 }
 
 .label {

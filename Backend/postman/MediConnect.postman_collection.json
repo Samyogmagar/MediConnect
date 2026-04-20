@@ -1,0 +1,2221 @@
+{
+  "info": {
+    "_postman_id": "174d98cc-ff00-4b07-9cfe-f33c1c91789d",
+    "name": "MediConnect Backend API (Full)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Generated from Backend route/controller mapping on 2026-04-16. Includes health, auth, appointments, role applications, diagnostics, medications, notifications, dashboard, medical records, availability, and settings APIs."
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{jwtToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000"
+    },
+    {
+      "key": "jwtToken",
+      "value": ""
+    },
+    {
+      "key": "provider",
+      "value": "google"
+    },
+    {
+      "key": "otp",
+      "value": "123456"
+    },
+    {
+      "key": "queryDate",
+      "value": "2026-04-20"
+    },
+    {
+      "key": "patientEmail",
+      "value": "patient@example.com"
+    },
+    {
+      "key": "patientPassword",
+      "value": "Password123!"
+    },
+    {
+      "key": "doctorEmail",
+      "value": "doctor@example.com"
+    },
+    {
+      "key": "doctorPassword",
+      "value": "Password123!"
+    },
+    {
+      "key": "labEmail",
+      "value": "lab@example.com"
+    },
+    {
+      "key": "labPassword",
+      "value": "Password123!"
+    },
+    {
+      "key": "adminEmail",
+      "value": "admin@example.com"
+    },
+    {
+      "key": "adminPassword",
+      "value": "Password123!"
+    },
+    {
+      "key": "userId",
+      "value": "replace-with-user-id"
+    },
+    {
+      "key": "patientId",
+      "value": "replace-with-patient-id"
+    },
+    {
+      "key": "doctorId",
+      "value": "replace-with-doctor-id"
+    },
+    {
+      "key": "labId",
+      "value": "replace-with-lab-id"
+    },
+    {
+      "key": "appointmentId",
+      "value": "replace-with-appointment-id"
+    },
+    {
+      "key": "diagnosticId",
+      "value": "replace-with-diagnostic-id"
+    },
+    {
+      "key": "medicationId",
+      "value": "replace-with-medication-id"
+    },
+    {
+      "key": "reminderId",
+      "value": "replace-with-reminder-id"
+    },
+    {
+      "key": "notificationId",
+      "value": "replace-with-notification-id"
+    },
+    {
+      "key": "applicationId",
+      "value": "replace-with-application-id"
+    },
+    {
+      "key": "allergyId",
+      "value": "replace-with-allergy-id"
+    },
+    {
+      "key": "conditionId",
+      "value": "replace-with-condition-id"
+    },
+    {
+      "key": "immunizationId",
+      "value": "replace-with-immunization-id"
+    },
+    {
+      "key": "labResultId",
+      "value": "replace-with-lab-result-id"
+    }
+  ],
+  "item": [
+    {
+      "name": "System",
+      "item": [
+        {
+          "name": "API Root",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/",
+            "description": "Backend root health/status endpoint.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "API Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/health",
+            "description": "Detailed API health endpoint with uptime.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register Patient",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/register",
+            "description": "Registers a patient account.",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Patient Test\",\n  \"email\": \"{{patientEmail}}\",\n  \"phone\": \"+9779800000001\",\n  \"password\": \"{{patientPassword}}\",\n  \"confirmPassword\": \"{{patientPassword}}\",\n  \"dob\": \"1998-01-10\",\n  \"gender\": \"male\",\n  \"address\": \"Kathmandu, Nepal\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login Patient",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/login",
+            "description": "Patient login. Stores jwtToken and user IDs in collection variables.",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"identifier\": \"{{patientEmail}}\",\n  \"password\": \"{{patientPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "let jsonData = {};",
+                  "try {",
+                  "  jsonData = pm.response.json();",
+                  "} catch (error) {",
+                  "  jsonData = {};",
+                  "}",
+                  "const data = jsonData.data || jsonData;",
+                  "const token = data.token || jsonData.token;",
+                  "if (token) {",
+                  "  pm.collectionVariables.set('jwtToken', token);",
+                  "}",
+                  "const user = data.user || jsonData.user;",
+                  "if (user && user._id) {",
+                  "  pm.collectionVariables.set('userId', user._id);",
+                  "  if (user.role === 'patient') pm.collectionVariables.set('patientId', user._id);",
+                  "  if (user.role === 'doctor') pm.collectionVariables.set('doctorId', user._id);",
+                  "  if (user.role === 'lab') pm.collectionVariables.set('labId', user._id);",
+                  "}",
+                  "pm.test('Login responded with success', function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login Doctor",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/login",
+            "description": "Doctor login. Stores jwtToken and doctorId in collection variables.",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"identifier\": \"{{doctorEmail}}\",\n  \"password\": \"{{doctorPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "let jsonData = {};",
+                  "try {",
+                  "  jsonData = pm.response.json();",
+                  "} catch (error) {",
+                  "  jsonData = {};",
+                  "}",
+                  "const data = jsonData.data || jsonData;",
+                  "const token = data.token || jsonData.token;",
+                  "if (token) {",
+                  "  pm.collectionVariables.set('jwtToken', token);",
+                  "}",
+                  "const user = data.user || jsonData.user;",
+                  "if (user && user._id) {",
+                  "  pm.collectionVariables.set('userId', user._id);",
+                  "  if (user.role === 'patient') pm.collectionVariables.set('patientId', user._id);",
+                  "  if (user.role === 'doctor') pm.collectionVariables.set('doctorId', user._id);",
+                  "  if (user.role === 'lab') pm.collectionVariables.set('labId', user._id);",
+                  "}",
+                  "pm.test('Login responded with success', function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login Lab",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/login",
+            "description": "Lab login. Stores jwtToken and labId in collection variables.",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"identifier\": \"{{labEmail}}\",\n  \"password\": \"{{labPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "let jsonData = {};",
+                  "try {",
+                  "  jsonData = pm.response.json();",
+                  "} catch (error) {",
+                  "  jsonData = {};",
+                  "}",
+                  "const data = jsonData.data || jsonData;",
+                  "const token = data.token || jsonData.token;",
+                  "if (token) {",
+                  "  pm.collectionVariables.set('jwtToken', token);",
+                  "}",
+                  "const user = data.user || jsonData.user;",
+                  "if (user && user._id) {",
+                  "  pm.collectionVariables.set('userId', user._id);",
+                  "  if (user.role === 'patient') pm.collectionVariables.set('patientId', user._id);",
+                  "  if (user.role === 'doctor') pm.collectionVariables.set('doctorId', user._id);",
+                  "  if (user.role === 'lab') pm.collectionVariables.set('labId', user._id);",
+                  "}",
+                  "pm.test('Login responded with success', function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login Admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/login",
+            "description": "Admin login. Stores jwtToken in collection variables.",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"identifier\": \"{{adminEmail}}\",\n  \"password\": \"{{adminPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "let jsonData = {};",
+                  "try {",
+                  "  jsonData = pm.response.json();",
+                  "} catch (error) {",
+                  "  jsonData = {};",
+                  "}",
+                  "const data = jsonData.data || jsonData;",
+                  "const token = data.token || jsonData.token;",
+                  "if (token) {",
+                  "  pm.collectionVariables.set('jwtToken', token);",
+                  "}",
+                  "const user = data.user || jsonData.user;",
+                  "if (user && user._id) {",
+                  "  pm.collectionVariables.set('userId', user._id);",
+                  "  if (user.role === 'patient') pm.collectionVariables.set('patientId', user._id);",
+                  "  if (user.role === 'doctor') pm.collectionVariables.set('doctorId', user._id);",
+                  "  if (user.role === 'lab') pm.collectionVariables.set('labId', user._id);",
+                  "}",
+                  "pm.test('Login responded with success', function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get OAuth Providers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/auth/oauth/providers?intent=login",
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get OAuth Start Metadata",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/auth/oauth/{{provider}}/start?intent=login",
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Complete OAuth Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/oauth/{{provider}}/complete",
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"oauth-code-from-provider\",\n  \"state\": \"oauth-state-token\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Forgot Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/forgot-password",
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{patientEmail}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Verify Reset OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/verify-reset-otp",
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{patientEmail}}\",\n  \"otp\": \"{{otp}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/reset-password",
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{patientEmail}}\",\n  \"otp\": \"{{otp}}\",\n  \"newPassword\": \"NewPassword123!\",\n  \"confirmPassword\": \"NewPassword123!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/auth/logout",
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/auth/me",
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Update My Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/profile",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Patient Name\",\n  \"phone\": \"+9779800000011\",\n  \"address\": \"Lalitpur, Nepal\",\n  \"gender\": \"female\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Upload Profile Photo",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": "{{baseUrl}}/api/auth/profile/photo",
+            "description": "",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "photo",
+                  "type": "file",
+                  "src": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Remove Profile Photo",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/auth/profile/photo",
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/change-password",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"{{patientPassword}}\",\n  \"newPassword\": \"NewPassword123!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Verified Doctors",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/auth/doctors",
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Doctor By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/auth/doctors/{{doctorId}}",
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Verified Labs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/auth/labs",
+            "description": "",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Users (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/auth/users",
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Create Admin (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/admin/create",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Secondary Admin\",\n  \"email\": \"admin2@example.com\",\n  \"password\": \"Password123!\",\n  \"confirmPassword\": \"Password123!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Staff User (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/admin/create-user",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Dr Alice Example\",\n  \"email\": \"{{doctorEmail}}\",\n  \"password\": \"{{doctorPassword}}\",\n  \"confirmPassword\": \"{{doctorPassword}}\",\n  \"role\": \"doctor\",\n  \"phone\": \"+9779800000100\",\n  \"address\": \"Kathmandu\",\n  \"professionalDetails\": {\n    \"specialization\": \"Cardiology\",\n    \"licenseNumber\": \"DOC-12345\",\n    \"experienceYears\": 5\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Pending Verifications (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/auth/admin/pending",
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Verify User (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": "{{baseUrl}}/api/auth/admin/verify/{{userId}}",
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Unverify User (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": "{{baseUrl}}/api/auth/admin/unverify/{{userId}}",
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Update User Status (Admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/admin/users/{{userId}}/status",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isActive\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update User Profile (Admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/auth/admin/users/{{userId}}/profile",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Staff Name\",\n  \"phone\": \"+9779800000999\",\n  \"address\": \"Pokhara\",\n  \"professionalDetails\": {\n    \"specialization\": \"General Medicine\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Dashboard",
+      "item": [
+        {
+          "name": "Patient Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/dashboard/patient",
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Doctor Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/dashboard/doctor",
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Lab Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/dashboard/lab",
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Admin Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/dashboard/admin",
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Super Admin Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/dashboard/super-admin",
+            "description": ""
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Availability",
+      "item": [
+        {
+          "name": "Get My Availability (Doctor)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/availability/me",
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Update My Availability (Doctor)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/availability/me",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"slotDurationMinutes\": 30,\n  \"workingDays\": [\n    {\n      \"dayOfWeek\": 1,\n      \"isWorking\": true,\n      \"startTime\": \"09:00\",\n      \"endTime\": \"17:00\"\n    },\n    {\n      \"dayOfWeek\": 2,\n      \"isWorking\": true,\n      \"startTime\": \"09:00\",\n      \"endTime\": \"17:00\"\n    },\n    {\n      \"dayOfWeek\": 3,\n      \"isWorking\": true,\n      \"startTime\": \"09:00\",\n      \"endTime\": \"17:00\"\n    },\n    {\n      \"dayOfWeek\": 4,\n      \"isWorking\": true,\n      \"startTime\": \"09:00\",\n      \"endTime\": \"17:00\"\n    },\n    {\n      \"dayOfWeek\": 5,\n      \"isWorking\": true,\n      \"startTime\": \"09:00\",\n      \"endTime\": \"17:00\"\n    },\n    {\n      \"dayOfWeek\": 6,\n      \"isWorking\": false,\n      \"startTime\": \"09:00\",\n      \"endTime\": \"17:00\"\n    },\n    {\n      \"dayOfWeek\": 0,\n      \"isWorking\": false,\n      \"startTime\": \"09:00\",\n      \"endTime\": \"17:00\"\n    }\n  ],\n  \"exceptions\": [\n    {\n      \"date\": \"2026-04-25\",\n      \"isAvailable\": false,\n      \"reason\": \"Public holiday\"\n    }\n  ],\n  \"timezone\": \"Asia/Kathmandu\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Doctor Availability",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/availability/doctors/{{doctorId}}",
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Get Doctor Slots",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/availability/doctors/{{doctorId}}/slots?date={{queryDate}}",
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Update Doctor Availability (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/availability/doctors/{{doctorId}}",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"slotDurationMinutes\": 20,\n  \"workingDays\": [\n    {\n      \"dayOfWeek\": 1,\n      \"isWorking\": true,\n      \"startTime\": \"08:00\",\n      \"endTime\": \"14:00\"\n    },\n    {\n      \"dayOfWeek\": 2,\n      \"isWorking\": true,\n      \"startTime\": \"08:00\",\n      \"endTime\": \"14:00\"\n    },\n    {\n      \"dayOfWeek\": 3,\n      \"isWorking\": true,\n      \"startTime\": \"08:00\",\n      \"endTime\": \"14:00\"\n    },\n    {\n      \"dayOfWeek\": 4,\n      \"isWorking\": true,\n      \"startTime\": \"08:00\",\n      \"endTime\": \"14:00\"\n    },\n    {\n      \"dayOfWeek\": 5,\n      \"isWorking\": true,\n      \"startTime\": \"08:00\",\n      \"endTime\": \"14:00\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Appointments",
+      "item": [
+        {
+          "name": "Initiate Khalti Payment (Patient)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/appointments/payments/khalti/initiate",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"doctorId\": \"{{doctorId}}\",\n  \"dateTime\": \"2026-04-20T10:00:00.000Z\",\n  \"reason\": \"Headache and fatigue\",\n  \"paymentAmount\": 500\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Appointment (Patient)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/appointments",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"doctorId\": \"{{doctorId}}\",\n  \"dateTime\": \"2026-04-20T10:00:00.000Z\",\n  \"reason\": \"Headache and fatigue\",\n  \"notes\": \"Recurring for 2 days\",\n  \"paymentMethod\": \"cash\",\n  \"paymentAmount\": 500\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Reschedule Appointment (Patient)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/appointments/{{appointmentId}}/reschedule",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dateTime\": \"2026-04-22T09:30:00.000Z\",\n  \"reason\": \"Travel delay\",\n  \"notes\": \"Need morning slot\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cancel Appointment (Patient)",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": "{{baseUrl}}/api/appointments/{{appointmentId}}/cancel",
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Approve Appointment (Doctor)",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": "{{baseUrl}}/api/appointments/{{appointmentId}}/approve",
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Reject Appointment (Doctor)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/appointments/{{appointmentId}}/reject",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rejectionReason\": \"Doctor unavailable at selected slot\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Complete Appointment (Doctor)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/appointments/{{appointmentId}}/complete",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"completionNotes\": \"Patient advised hydration and rest for 3 days\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Reschedule By Doctor",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/appointments/{{appointmentId}}/reschedule-by-doctor",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dateTime\": \"2026-04-23T12:00:00.000Z\",\n  \"reason\": \"Emergency surgery schedule conflict\",\n  \"notes\": \"Moved to afternoon.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Appointments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/appointments?status=pending&dateFrom=2026-04-01&dateTo=2026-04-30",
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Get Appointment By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/appointments/{{appointmentId}}",
+            "description": ""
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Role Applications",
+      "item": [
+        {
+          "name": "Submit Role Application (Patient)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/role-applications",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"requestedRole\": \"doctor\",\n  \"professionalDetails\": {\n    \"specialization\": \"Cardiology\",\n    \"licenseNumber\": \"DOC-12345\",\n    \"experienceYears\": 5\n  },\n  \"documents\": [\n    {\n      \"name\": \"license\",\n      \"url\": \"https://example.com/license.pdf\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Role Application (Patient)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/role-applications/{{applicationId}}",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"professionalDetails\": {\n    \"specialization\": \"Cardiology\",\n    \"licenseNumber\": \"DOC-12345\",\n    \"experienceYears\": 6\n  },\n  \"documents\": [\n    {\n      \"name\": \"updated-license\",\n      \"url\": \"https://example.com/updated-license.pdf\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Role Application (Patient)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/role-applications/{{applicationId}}",
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Approve Role Application (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": "{{baseUrl}}/api/role-applications/{{applicationId}}/approve",
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Reject Role Application (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/role-applications/{{applicationId}}/reject",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rejectionReason\": \"Submitted documents are incomplete\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Pending Application Count (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/role-applications/statistics/pending",
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Get Role Applications",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/role-applications?status=pending&requestedRole=doctor",
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Get Role Application By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/role-applications/{{applicationId}}",
+            "description": ""
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Diagnostics",
+      "item": [
+        {
+          "name": "Assign Diagnostic Test (Doctor)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/diagnostics/assign",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"patientId\": \"{{patientId}}\",\n  \"labId\": \"{{labId}}\",\n  \"testName\": \"Complete Blood Count\",\n  \"testType\": \"blood\",\n  \"description\": \"Baseline CBC panel\",\n  \"urgency\": \"normal\",\n  \"instructions\": \"No fasting required\",\n  \"estimatedCompletionDate\": \"2026-04-22T10:00:00.000Z\",\n  \"appointmentId\": \"{{appointmentId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cancel Diagnostic Test (Doctor)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/diagnostics/{{diagnosticId}}/cancel",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cancellationReason\": \"Duplicate test assignment\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Diagnostic Status (Lab)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/diagnostics/{{diagnosticId}}/status",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"in_progress\",\n  \"notes\": \"Sample collected and processing started\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Upload Diagnostic Report Metadata (Lab)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/diagnostics/{{diagnosticId}}/report",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"filename\": \"cbc-report.pdf\",\n  \"url\": \"https://example.com/reports/cbc-report.pdf\",\n  \"fileSize\": 245000,\n  \"mimeType\": \"application/pdf\",\n  \"findings\": \"Values within normal range\",\n  \"recommendations\": \"Maintain hydration\",\n  \"notes\": \"No immediate concerns\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Upload Diagnostic Report File (Lab)",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": "{{baseUrl}}/api/diagnostics/{{diagnosticId}}/report-file",
+            "description": "",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "report",
+                  "type": "file",
+                  "src": ""
+                },
+                {
+                  "key": "findings",
+                  "type": "text",
+                  "value": "Values within normal range"
+                },
+                {
+                  "key": "recommendations",
+                  "type": "text",
+                  "value": "Maintain hydration"
+                },
+                {
+                  "key": "notes",
+                  "type": "text",
+                  "value": "No immediate concerns"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Lab Pending Test Stats (Lab)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/diagnostics/lab/pending",
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Get Diagnostic Statistics (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/diagnostics/statistics/overview",
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Get Completed Diagnostics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/diagnostics/completed",
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Get Diagnostics List",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/diagnostics?status=assigned&urgency=normal&testType=blood",
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Get Diagnostic By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/diagnostics/{{diagnosticId}}",
+            "description": ""
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Medications",
+      "item": [
+        {
+          "name": "Prescribe Medication (Doctor)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/medications/prescribe",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"patientId\": \"{{patientId}}\",\n  \"medicationName\": \"Paracetamol\",\n  \"dosage\": \"500mg\",\n  \"frequency\": \"daily\",\n  \"frequencyTimes\": [\n    \"08:00\",\n    \"20:00\"\n  ],\n  \"duration\": {\n    \"value\": 5,\n    \"unit\": \"days\"\n  },\n  \"startDate\": \"2026-04-17\",\n  \"instructions\": \"Take after meal\",\n  \"reason\": \"Fever and body ache\",\n  \"remindersEnabled\": true,\n  \"appointmentId\": \"{{appointmentId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Medication (Doctor)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/medications/{{medicationId}}",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"instructions\": \"Take with plenty of water\",\n  \"dosage\": \"650mg\",\n  \"frequency\": \"daily\",\n  \"frequencyTimes\": [\n    \"09:00\",\n    \"21:00\"\n  ],\n  \"remindersEnabled\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Discontinue Medication (Doctor)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/medications/{{medicationId}}/discontinue",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Symptoms resolved\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Discontinued Medication",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/medications/{{medicationId}}",
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Discontinued Medication (Explicit Route)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/medications/discontinued/{{medicationId}}",
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Acknowledge Reminder (Patient)",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": "{{baseUrl}}/api/medications/reminders/{{reminderId}}/acknowledge",
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Get Active Medications",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/medications/active?patientId={{patientId}}",
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Get Today Reminders",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/medications/reminders/today?patientId={{patientId}}",
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Get Reminders By Date Range",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/medications/reminders?patientId={{patientId}}&startDate=2026-04-01&endDate=2026-04-30",
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Get Adherence Stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/medications/adherence?patientId={{patientId}}&days=7",
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Get Medications",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/medications?status=active",
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Get Medication By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/medications/{{medicationId}}",
+            "description": ""
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "Get Unread Notification Count",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/notifications/unread/count",
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Get Notification Preferences",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/notifications/preferences",
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Update Notification Preferences",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/notifications/preferences",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"channels\": {\n    \"inApp\": true,\n    \"email\": true,\n    \"push\": false\n  },\n  \"types\": {\n    \"appointment\": true,\n    \"diagnostic\": true,\n    \"medication\": true,\n    \"system\": true\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Subscribe Push Notifications",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/notifications/push-subscriptions",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"deviceLabel\": \"Chrome on Windows\",\n  \"subscription\": {\n    \"endpoint\": \"https://fcm.googleapis.com/fcm/send/sample-endpoint\",\n    \"keys\": {\n      \"p256dh\": \"sample-p256dh-key\",\n      \"auth\": \"sample-auth-key\"\n    }\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Unsubscribe Push Notifications",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/notifications/push-subscriptions",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"endpoint\": \"https://fcm.googleapis.com/fcm/send/sample-endpoint\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Send Test Push",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/notifications/test-push",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Postman Push Test\",\n  \"body\": \"This is a test push notification from Postman.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Notifications",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/notifications?page=1&limit=20&isRead=false&type=appointment&priority=high&sortBy=createdAt&sortOrder=desc",
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Get Notification By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/notifications/{{notificationId}}",
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Mark Notification As Read",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": "{{baseUrl}}/api/notifications/{{notificationId}}/read",
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Mark Many Notifications As Read",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/notifications/mark-many-read",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"notificationIds\": [\n    \"{{notificationId}}\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Mark All Notifications As Read",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": "{{baseUrl}}/api/notifications/mark-all-read",
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Delete All Read Notifications",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/notifications/read",
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Cleanup Old Notifications (Admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/notifications/cleanup?daysOld=30",
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Notification By ID",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/notifications/{{notificationId}}",
+            "description": ""
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Medical Records",
+      "item": [
+        {
+          "name": "Get Medical Record",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/medical-records/{{patientId}}",
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Add Vital Signs",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/medical-records/{{patientId}}/vitals",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"height\": 170,\n  \"weight\": 65,\n  \"bloodPressure\": \"120/80\",\n  \"heartRate\": 72,\n  \"temperature\": 98.6,\n  \"respiratoryRate\": 16,\n  \"oxygenSaturation\": 98\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Vital History",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/medical-records/{{patientId}}/vitals/history?limit=10",
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Add Allergy",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/medical-records/{{patientId}}/allergies",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"allergen\": \"Peanuts\",\n  \"reaction\": \"Skin rash\",\n  \"severity\": \"moderate\",\n  \"notes\": \"Carries antihistamine\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Allergy",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/medical-records/{{patientId}}/allergies/{{allergyId}}",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reaction\": \"Mild rash\",\n  \"severity\": \"mild\",\n  \"isActive\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Allergy",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/medical-records/{{patientId}}/allergies/{{allergyId}}",
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Get Active Allergies",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/medical-records/{{patientId}}/allergies/active",
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Add Condition",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/medical-records/{{patientId}}/conditions",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Hypertension\",\n  \"diagnosisDate\": \"2025-12-01\",\n  \"status\": \"active\",\n  \"notes\": \"Monitor monthly\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Condition",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/medical-records/{{patientId}}/conditions/{{conditionId}}",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"controlled\",\n  \"notes\": \"Responding to medication\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Condition",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/medical-records/{{patientId}}/conditions/{{conditionId}}",
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Get Active Conditions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/medical-records/{{patientId}}/conditions/active",
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Add Immunization",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/medical-records/{{patientId}}/immunizations",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vaccineName\": \"Tetanus Booster\",\n  \"administeredDate\": \"2024-09-10\",\n  \"dose\": \"1\",\n  \"notes\": \"No side effects observed\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Immunization",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/medical-records/{{patientId}}/immunizations/{{immunizationId}}",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"notes\": \"Batch number updated\",\n  \"nextDueDate\": \"2034-09-10\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Immunization",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/medical-records/{{patientId}}/immunizations/{{immunizationId}}",
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Add Lab Result",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/medical-records/{{patientId}}/lab-results",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"testName\": \"Lipid Profile\",\n  \"testDate\": \"2026-04-10\",\n  \"result\": \"Borderline high LDL\",\n  \"normalRange\": \"LDL < 100\",\n  \"notes\": \"Diet control recommended\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Lab Result",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/medical-records/{{patientId}}/lab-results/{{labResultId}}",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"result\": \"Improving LDL levels\",\n  \"notes\": \"Review after 3 months\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Lab Result",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/medical-records/{{patientId}}/lab-results/{{labResultId}}",
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Update General Medical Info",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/medical-records/{{patientId}}/general",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bloodType\": \"O+\",\n  \"familyHistory\": \"Diabetes\",\n  \"socialHistory\": \"Non-smoker\",\n  \"notes\": \"No prior surgeries\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Settings",
+      "item": [
+        {
+          "name": "Get Hospital Settings (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/settings",
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Update Hospital Settings (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/settings",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"hospitalName\": \"MediConnect Hospital\",\n  \"tagline\": \"Single hospital care operations\",\n  \"contactEmail\": \"contact@mediconnect.com\",\n  \"contactPhone\": \"+977-01-5555555\",\n  \"timezone\": \"Asia/Kathmandu\",\n  \"address\": {\n    \"street\": \"Buddhanagar\",\n    \"city\": \"Kathmandu\",\n    \"province\": \"Bagmati\",\n    \"postalCode\": \"44600\",\n    \"country\": \"Nepal\"\n  },\n  \"departments\": [\n    \"Cardiology\",\n    \"Neurology\",\n    \"General Medicine\"\n  ],\n  \"testCategories\": [\n    \"Blood\",\n    \"Imaging\",\n    \"Pathology\"\n  ],\n  \"defaultConsultationFee\": 500,\n  \"defaultConsultationDurationMinutes\": 30\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

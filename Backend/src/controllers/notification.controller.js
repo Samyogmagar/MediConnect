@@ -235,6 +235,115 @@ class NotificationController {
       return errorResponse(res, error.statusCode || 500, error.message || MESSAGES.SERVER.ERROR);
     }
   }
+
+  /**
+   * Get notification preferences for authenticated user
+   * @route GET /api/notifications/preferences
+   * @access Private
+   */
+  async getPreferences(req, res) {
+    try {
+      const userId = req.user.userId;
+      const result = await notificationService.getPreferences(userId);
+
+      return successResponse(
+        res,
+        200,
+        MESSAGES.NOTIFICATION.PREFERENCES_FETCH_SUCCESS,
+        result
+      );
+    } catch (error) {
+      console.error('Get notification preferences error:', error);
+      return errorResponse(res, error.statusCode || 500, error.message || MESSAGES.SERVER.ERROR);
+    }
+  }
+
+  /**
+   * Update notification preferences for authenticated user
+   * @route PUT /api/notifications/preferences
+   * @access Private
+   */
+  async updatePreferences(req, res) {
+    try {
+      const userId = req.user.userId;
+      const result = await notificationService.updatePreferences(userId, req.body || {});
+
+      return successResponse(
+        res,
+        200,
+        MESSAGES.NOTIFICATION.PREFERENCES_UPDATED,
+        result
+      );
+    } catch (error) {
+      console.error('Update notification preferences error:', error);
+      return errorResponse(res, error.statusCode || 500, error.message || MESSAGES.SERVER.ERROR);
+    }
+  }
+
+  /**
+   * Subscribe current device for push notifications
+   * @route POST /api/notifications/push-subscriptions
+   * @access Private
+   */
+  async subscribePush(req, res) {
+    try {
+      const userId = req.user.userId;
+      const { subscription, deviceLabel } = req.body || {};
+
+      if (!subscription) {
+        return errorResponse(res, 400, MESSAGES.NOTIFICATION.PUSH_SUBSCRIPTION_REQUIRED);
+      }
+
+      const result = await notificationService.savePushSubscription(userId, subscription, {
+        deviceLabel,
+        userAgent: req.headers['user-agent'],
+      });
+
+      return successResponse(res, 200, MESSAGES.NOTIFICATION.PUSH_SUBSCRIBED, result);
+    } catch (error) {
+      console.error('Subscribe push error:', error);
+      return errorResponse(res, error.statusCode || 500, error.message || MESSAGES.SERVER.ERROR);
+    }
+  }
+
+  /**
+   * Unsubscribe current device from push notifications
+   * @route DELETE /api/notifications/push-subscriptions
+   * @access Private
+   */
+  async unsubscribePush(req, res) {
+    try {
+      const userId = req.user.userId;
+      const { endpoint } = req.body || {};
+
+      if (!endpoint) {
+        return errorResponse(res, 400, MESSAGES.NOTIFICATION.PUSH_ENDPOINT_REQUIRED);
+      }
+
+      const result = await notificationService.removePushSubscription(userId, endpoint);
+      return successResponse(res, 200, MESSAGES.NOTIFICATION.PUSH_UNSUBSCRIBED, result);
+    } catch (error) {
+      console.error('Unsubscribe push error:', error);
+      return errorResponse(res, error.statusCode || 500, error.message || MESSAGES.SERVER.ERROR);
+    }
+  }
+
+  /**
+   * Send test push notification to current user's active subscriptions.
+   * @route POST /api/notifications/test-push
+   * @access Private
+   */
+  async sendTestPush(req, res) {
+    try {
+      const userId = req.user.userId;
+      const result = await notificationService.sendTestPush(userId, req.body || {});
+
+      return successResponse(res, 200, MESSAGES.NOTIFICATION.TEST_PUSH_SENT, result);
+    } catch (error) {
+      console.error('Test push error:', error);
+      return errorResponse(res, error.statusCode || 500, error.message || MESSAGES.SERVER.ERROR);
+    }
+  }
 }
 
 export default new NotificationController();

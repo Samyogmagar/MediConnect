@@ -3,10 +3,14 @@ import { X } from 'lucide-react';
 import LabLayout from '../../components/lab/LabLayout';
 import StatCard from '../../components/lab/StatCard';
 import TestRequestTable from '../../components/lab/TestRequestTable';
+import { useToast } from '../../components/common/feedback/ToastProvider';
+import { useModal } from '../../components/common/feedback/ModalProvider';
 import labService from '../../services/labService';
 import styles from './TestRequests.module.css';
 
 const TestRequests = () => {
+  const { showToast } = useToast();
+  const { showConfirm } = useModal();
   const [tests, setTests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -32,29 +36,68 @@ const TestRequests = () => {
   };
 
   const handleAccept = async (test) => {
-    if (!window.confirm(`Mark sample collected for "${test.testName}"?`)) return;
+    const { confirmed } = await showConfirm({
+      title: 'Mark sample collected?',
+      message: `Mark sample collected for "${test.testName}"?`,
+      confirmText: 'Mark collected',
+      cancelText: 'Cancel',
+      confirmVariant: 'success',
+    });
+    if (!confirmed) return;
+
     try {
       await labService.acceptTest(test._id);
       setTests((prev) =>
         prev.map((t) => (t._id === test._id ? { ...t, status: 'sample_collected' } : t))
       );
+      showToast({
+        type: 'success',
+        title: 'Status updated',
+        message: 'Test marked as sample collected.',
+      });
     } catch (err) {
       console.error('Error accepting test:', err);
-      alert('Failed to update test status.');
+      showToast({
+        type: 'error',
+        title: 'Update failed',
+        message: 'Failed to update test status.',
+      });
     }
   };
 
   const handleReject = async (test) => {
-    const reason = prompt('Reason for rejection:');
-    if (reason === null) return; // User cancelled the prompt
+    const { confirmed, inputValue } = await showConfirm({
+      title: 'Reject test request?',
+      message: `Provide a reason to reject "${test.testName}".`,
+      confirmText: 'Reject',
+      cancelText: 'Cancel',
+      confirmVariant: 'danger',
+      inputConfig: {
+        type: 'textarea',
+        label: 'Rejection reason',
+        placeholder: 'Explain why this request is being rejected',
+        required: false,
+      },
+    });
+    if (!confirmed) return;
+
     try {
-      await labService.rejectTest(test._id, reason || 'Rejected by lab');
+      await labService.rejectTest(test._id, inputValue || 'Rejected by lab');
       setTests((prev) =>
         prev.map((t) => (t._id === test._id ? { ...t, status: 'cancelled' } : t))
       );
+      showToast({
+        type: 'success',
+        title: 'Test rejected',
+        message: 'The doctor has been notified.',
+      });
     } catch (err) {
       console.error('Error rejecting test:', err);
-      alert('Failed to reject test request.');
+      showToast({
+        type: 'error',
+        title: 'Rejection failed',
+        message: 'Failed to reject test request.',
+      });
     }
   };
 

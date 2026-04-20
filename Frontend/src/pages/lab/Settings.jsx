@@ -21,6 +21,7 @@ import {
 import LabLayout from '../../components/lab/LabLayout';
 import useAuth from '../../hooks/useAuth';
 import authService from '../../services/authService';
+import notificationService from '../../services/notificationService';
 import styles from './Settings.module.css';
 
 const PROVINCES = [
@@ -90,8 +91,11 @@ const Settings = () => {
     prescriptions: true,
     labReports: true,
   });
+  const [pushEnabled, setPushEnabled] = useState(false);
   const [notificationMsg, setNotificationMsg] = useState({ type: '', text: '' });
   const [notificationSaving, setNotificationSaving] = useState(false);
+  const [pushSaving, setPushSaving] = useState(false);
+  const [pushTestSending, setPushTestSending] = useState(false);
 
   // Appearance State
   const [appearance, setAppearance] = useState('system');
@@ -118,6 +122,28 @@ const Settings = () => {
       loadUserData(user);
     }
   }, [user]);
+
+  useEffect(() => {
+    const loadNotificationPreferences = async () => {
+      try {
+        const res = await notificationService.getPreferences();
+        const prefs = res?.data?.notificationPreferences || res?.data?.data?.notificationPreferences || {};
+
+        setNotifications((prev) => ({
+          ...prev,
+          appointments: prefs.appointments ?? prev.appointments,
+          cancellations: prefs.cancellations ?? prev.cancellations,
+          prescriptions: prefs.prescriptions ?? prev.prescriptions,
+          labReports: prefs.labReports ?? prev.labReports,
+        }));
+        setPushEnabled(prefs.channels?.push === true);
+      } catch {
+        // Keep user context values as fallback.
+      }
+    };
+
+    loadNotificationPreferences();
+  }, []);
 
   const loadUserData = (currentUser) => {
     // Load personal information
@@ -150,6 +176,7 @@ const Settings = () => {
         prescriptions: currentUser.notificationPreferences.prescriptions !== false,
         labReports: currentUser.notificationPreferences.labReports !== false,
       });
+      setPushEnabled(currentUser.notificationPreferences.channels?.push === true);
     }
 
     // Load appearance preference
@@ -264,9 +291,7 @@ const Settings = () => {
     setNotificationMsg({ type: '', text: '' });
 
     try {
-      await authService.updateProfile({
-        notificationPreferences: notifications,
-      });
+      await notificationService.updatePreferences(notifications);
       await refreshUser();
       setNotificationMsg({
         type: 'success',
@@ -279,6 +304,105 @@ const Settings = () => {
       });
     } finally {
       setNotificationSaving(false);
+    }
+  };
+
+  const isPushSupported =
+    typeof window !== 'undefined' && 'serviceWorker' in navigator && 'PushManager' in window;
+
+  const handleEnablePush = async () => {
+    if (!isPushSupported) {
+      setNotificationMsg({
+        type: 'error',
+        text: 'Push notifications are not supported on this browser/device.',
+      });
+      return;
+    }
+
+    setPushSaving(true);
+    setNotificationMsg({ type: '', text: '' });
+
+    try {
+      await notificationService.enablePushOnCurrentDevice();
+      await notificationService.updatePreferences({ channels: { push: true } });
+      setPushEnabled(true);
+      await refreshUser();
+      setNotificationMsg({ type: 'success', text: 'Push notifications enabled for this device.' });
+    } catch (error) {
+      setNotificationMsg({
+        type: 'error',
+        text: error.message || 'Failed to enable push notifications for this device.',
+      });
+    } finally {
+      setPushSaving(false);
+    }
+  };
+
+  const handleDisablePush = async () => {
+    setPushSaving(true);
+    setNotificationMsg({ type: '', text: '' });
+
+    try {
+      await notificationService.disablePushOnCurrentDevice();
+      await notificationService.updatePreferences({ channels: { push: false } });
+      setPushEnabled(false);
+      await refreshUser();
+      setNotificationMsg({
+        type: 'success',
+        text: 'Push notifications disabled for this device.',
+      });
+    } catch (error) {
+      setNotificationMsg({
+        type: 'error',
+        text: error.message || 'Failed to disable push notifications for this device.',
+      });
+    } finally {
+      setPushSaving(false);
+    }
+  };
+
+  const handleSendTestPush = async () => {
+    setPushTestSending(true);
+    setNotificationMsg({ type: '', text: '' });
+
+    try {
+      const response = await notificationService.sendTestPush({
+        title: 'MediConnect Test Notification',
+        message: 'Push delivery check from lab settings.',
+        actionUrl: '/lab/notifications',
+        actionLabel: 'Open Notifications',
+      });
+
+      const data = response?.data || {};
+
+      if (data.sentCount > 0) {
+        setNotificationMsg({
+          type: 'success',
+          text: `Test push sent to ${data.sentCount} device(s).`,
+        });
+      } else if (data.reason === 'no_subscriptions') {
+        setNotificationMsg({
+          type: 'error',
+          text: 'No subscribed devices found. Enable push on this device first.',
+        });
+      } else if (data.reason === 'vapid_not_configured') {
+        setNotificationMsg({
+          type: 'error',
+          text: 'Server push is not configured yet (missing VAPID keys).',
+        });
+      } else {
+        setNotificationMsg({
+          type: 'error',
+          text: 'Push test did not send. Please verify your push setup.',
+        });
+      }
+    } catch (error) {
+      setNotificationMsg({
+        type: 'error',
+        text: error.response?.data?.message || 'Failed to send test push notification.',
+      });
+    } finally {
+      setPushTestSending(false);
     }
   };
 
@@ -881,6 +1005,37 @@ const Settings = () => {
                 <span className={styles.slider}></span>
               </label>
             </div>
+          </div>
+
+          <div className={styles.pushActions}>
+            <p className={styles.helperText}>
+              Device push status: {pushEnabled ? 'Enabled' : 'Disabled'}
+              {!isPushSupported ? ' (unsupported browser)' : ''}
+            </p>
+            <button
+              type="button"
+              className={styles.secondaryButton}
+              onClick={handleEnablePush}
+              disabled={pushSaving || pushTestSending || !isPushSupported || pushEnabled}
+            >
+              {pushSaving && !pushEnabled ? 'Enabling...' : 'Enable Push on This Device'}
+            </button>
+            <button
+              type="button"
+              className={styles.secondaryButton}
+              onClick={handleDisablePush}
+              disabled={pushSaving || pushTestSending || !pushEnabled}
+            >
+              {pushSaving && pushEnabled ? 'Disabling...' : 'Disable Push on This Device'}
+            </button>
+            <button
+              type="button"
+              className={styles.secondaryButton}
+              onClick={handleSendTestPush}
+              disabled={pushSaving || pushTestSending}
+            >
+              {pushTestSending ? 'Sending Test...' : 'Send Test Push'}
+            </button>
           </div>
 
           <div className={styles.formActions}>

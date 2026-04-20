@@ -77,11 +77,6 @@ reminderSchema.index({ patientId: 1, status: 1, reminderDate: 1 });
 reminderSchema.index({ medicationId: 1, reminderDate: 1 });
 reminderSchema.index({ status: 1, reminderTime: 1 });
 
-// Index for finding pending reminders due now
-reminderSchema.index({
-  status: 1,
-  reminderTime: 1,
-});
 
 // Static method to get pending reminders for a time range
 reminderSchema.statics.getPendingReminders = function (startTime, endTime) {

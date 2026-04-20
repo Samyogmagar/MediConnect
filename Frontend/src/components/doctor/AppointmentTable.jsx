@@ -1,7 +1,8 @@
 import { Calendar, Clock, CheckCircle2, XCircle } from 'lucide-react';
 import styles from './AppointmentTable.module.css';
+import { isAppointmentReschedulableByDoctor, normalizeAppointmentStatus } from '../../utils/doctorWorkflowStatus.util';
 
-const AppointmentTable = ({ appointments = [], onApprove, onReject, onComplete, onView, loading }) => {
+const AppointmentTable = ({ appointments = [], onApprove, onReject, onComplete, onReschedule, onView, loading }) => {
   const formatDate = (d) => {
     if (!d) return '—';
     return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
@@ -22,13 +23,6 @@ const AppointmentTable = ({ appointments = [], onApprove, onReject, onComplete, 
       rejected: 'statusRejected',
     };
     return styles[map[status?.toLowerCase()] || 'statusPending'];
-  };
-
-  const normalizeStatus = (status) => {
-    const normalized = (status || '').toLowerCase();
-    if (normalized === 'approved') return 'confirmed';
-    if (normalized === 'rejected') return 'cancelled';
-    return normalized;
   };
 
   if (loading) {
@@ -78,7 +72,7 @@ const AppointmentTable = ({ appointments = [], onApprove, onReject, onComplete, 
                 <span className={styles.reasonText}>{apt.reason || '—'}</span>
               </td>
               <td>
-                <span className={getStatusClass(apt.status)}>{normalizeStatus(apt.status)}</span>
+                <span className={getStatusClass(apt.status)}>{normalizeAppointmentStatus(apt.status)}</span>
               </td>
               <td>
                 <div className={styles.actions}>
@@ -100,13 +94,22 @@ const AppointmentTable = ({ appointments = [], onApprove, onReject, onComplete, 
                       </button>
                     </>
                   )}
-                  {normalizeStatus(apt.status) === 'confirmed' && (
+                  {normalizeAppointmentStatus(apt.status) === 'confirmed' && (
                     <button
                       className={`${styles.btn} ${styles.btnComplete}`}
                       onClick={() => onComplete && onComplete(apt)}
                       title="Complete"
                     >
                       <CheckCircle2 size={14} /> Complete
+                    </button>
+                  )}
+                  {isAppointmentReschedulableByDoctor(apt.status) && (
+                    <button
+                      className={`${styles.btn} ${styles.btnReschedule}`}
+                      onClick={() => onReschedule && onReschedule(apt)}
+                      title="Reschedule"
+                    >
+                      <Calendar size={14} /> Reschedule
                     </button>
                   )}
                   <button

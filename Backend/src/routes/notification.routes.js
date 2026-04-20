@@ -19,6 +19,41 @@ router.use(authMiddleware);
 router.get('/unread/count', notificationController.getUnreadCount);
 
 /**
+ * @route   GET /api/notifications/preferences
+ * @desc    Get notification preferences for current user
+ * @access  Private
+ */
+router.get('/preferences', notificationController.getPreferences);
+
+/**
+ * @route   PUT /api/notifications/preferences
+ * @desc    Update notification preferences for current user
+ * @access  Private
+ */
+router.put('/preferences', notificationController.updatePreferences);
+
+/**
+ * @route   POST /api/notifications/push-subscriptions
+ * @desc    Subscribe current device for push notifications
+ * @access  Private
+ */
+router.post('/push-subscriptions', notificationController.subscribePush);
+
+/**
+ * @route   DELETE /api/notifications/push-subscriptions
+ * @desc    Unsubscribe current device from push notifications
+ * @access  Private
+ */
+router.delete('/push-subscriptions', notificationController.unsubscribePush);
+
+/**
+ * @route   POST /api/notifications/test-push
+ * @desc    Send test push notification to current user's subscribed devices
+ * @access  Private
+ */
+router.post('/test-push', notificationController.sendTestPush);
+
+/**
  * @route   GET /api/notifications
  * @desc    Get all notifications for the authenticated user (with pagination and filters)
  * @query   page, limit, isRead, type, priority, sortBy, sortOrder
@@ -56,13 +91,6 @@ router.put('/mark-many-read', notificationController.markManyAsRead);
 router.put('/mark-all-read', notificationController.markAllAsRead);
 
 /**
- * @route   DELETE /api/notifications/:id
- * @desc    Delete a notification
- * @access  Private
- */
-router.delete('/:id', notificationController.deleteNotification);
-
-/**
  * @route   DELETE /api/notifications/read
  * @desc    Delete all read notifications for the authenticated user
  * @access  Private
@@ -76,5 +104,12 @@ router.delete('/read', notificationController.deleteAllRead);
  * @access  Private (Admin only)
  */
 router.delete('/cleanup', adminOnly, notificationController.cleanupOldNotifications);
+
+/**
+ * @route   DELETE /api/notifications/:id
+ * @desc    Delete a notification
+ * @access  Private
+ */
+router.delete('/:id', notificationController.deleteNotification);
 
 export default router;

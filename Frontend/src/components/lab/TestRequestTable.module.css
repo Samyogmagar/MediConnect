@@ -1,4 +1,4 @@
-.tableWrap {
+﻿.tableWrap {
   background: #ffffff;
   border: 1px solid #f1f5f9;
   border-radius: 12px;
@@ -105,10 +105,10 @@
 .priorityUrgent {
   font-size: 0.75rem;
   font-weight: 600;
-  color: #dc2626;
+  color: var(--status-cancelled-text);
   padding: 0.25rem 0.625rem;
-  background: #fef2f2;
-  border: 1px solid #fecaca;
+  background: var(--status-cancelled-bg);
+  border: 1px solid var(--status-cancelled-border);
   border-radius: 999px;
 }
 
@@ -117,7 +117,7 @@
   font-weight: 600;
   color: #ffffff;
   padding: 0.25rem 0.625rem;
-  background: #dc2626;
+  background: var(--status-cancelled-text);
   border-radius: 999px;
 }
 
@@ -125,18 +125,18 @@
 .statusPending {
   font-size: 0.75rem;
   font-weight: 600;
-  color: #ea580c;
+  color: var(--status-pending-text);
   padding: 0.25rem 0.75rem;
-  background: #fff7ed;
+  background: var(--status-pending-bg);
   border-radius: 999px;
 }
 
 .statusInProgress {
   font-size: 0.75rem;
   font-weight: 600;
-  color: #0f766e;
+  color: var(--status-processing-text);
   padding: 0.25rem 0.75rem;
-  background: #ecfdf3;
+  background: var(--status-processing-bg);
   border-radius: 999px;
 }
 
@@ -161,27 +161,27 @@
 .statusAccepted {
   font-size: 0.75rem;
   font-weight: 600;
-  color: #16a34a;
+  color: var(--status-active-text);
   padding: 0.25rem 0.75rem;
-  background: #f0fdf4;
+  background: var(--status-active-bg);
   border-radius: 999px;
 }
 
 .statusCompleted {
   font-size: 0.75rem;
   font-weight: 600;
-  color: #16a34a;
+  color: var(--status-completed-text);
   padding: 0.25rem 0.75rem;
-  background: #f0fdf4;
+  background: var(--status-completed-bg);
   border-radius: 999px;
 }
 
 .statusCancelled {
   font-size: 0.75rem;
   font-weight: 600;
-  color: #dc2626;
+  color: var(--status-cancelled-text);
   padding: 0.25rem 0.75rem;
-  background: #fef2f2;
+  background: var(--status-cancelled-bg);
   border-radius: 999px;
 }
 
@@ -218,20 +218,20 @@
 }
 
 .btnAccept {
-  background: #f0fdf4;
-  color: #16a34a;
-  border: 1px solid #bbf7d0;
+  background: var(--status-active-bg);
+  color: var(--status-active-text);
+  border: 1px solid var(--status-active-border);
 }
 
 .btnAccept:hover {
-  background: #dcfce7;
-  color: #15803d;
+  background: var(--status-completed-bg);
+  color: var(--status-completed-text);
 }
 
 .btnReject {
-  background: #fef2f2;
-  color: #dc2626;
-  border: 1px solid #fecaca;
+  background: var(--status-cancelled-bg);
+  color: var(--status-cancelled-text);
+  border: 1px solid var(--status-cancelled-border);
 }
 
 .btnReject:hover {
@@ -256,3 +256,4 @@
     padding: 0.75rem 0.75rem;
   }
 }
+

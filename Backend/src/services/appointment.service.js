@@ -101,7 +101,7 @@ class AppointmentService {
    * @returns {Object} Created appointment
    */
   async createAppointment(appointmentData, userId) {
-    const { doctorId, dateTime, reason, notes, paymentMethod, khaltiPidx } = appointmentData;
+    const { doctorId, dateTime, reason, notes, paymentMethod, khaltiPidx, followUpOf } = appointmentData;
     const { appointmentDate, consultationFee } = await this._validateBookableSlot({ userId, doctorId, dateTime });
 
     const amount = Number(consultationFee);
@@ -129,10 +129,33 @@ class AppointmentService {
       throw { statusCode: 400, message: MESSAGES.APPOINTMENT.PAYMENT_NOT_COMPLETED };
     }
 
+    let followUpAppointmentId = undefined;
+    if (followUpOf) {
+      const baseAppointment = await Appointment.findById(followUpOf);
+      if (!baseAppointment) {
+        throw { statusCode: 404, message: 'Follow-up base appointment not found' };
+      }
+
+      if (baseAppointment.patientId.toString() !== userId) {
+        throw { statusCode: 403, message: MESSAGES.APPOINTMENT.PATIENT_ACCESS_DENIED };
+      }
+
+      if (baseAppointment.doctorId.toString() !== doctorId) {
+        throw { statusCode: 400, message: 'Follow-up must be booked with the same doctor' };
+      }
+
+      if (baseAppointment.status !== 'completed') {
+        throw { statusCode: 400, message: 'Follow-up can only be created from completed consultations' };
+      }
+
+      followUpAppointmentId = baseAppointment._id;
+    }
+
     // Create appointment
     const appointment = await Appointment.create({
       patientId: userId,
       doctorId,
+      followUpOf: followUpAppointmentId,
       dateTime: appointmentDate,
       reason,
       notes,
@@ -146,8 +169,15 @@ class AppointmentService {
       { path: 'doctorId', select: 'name email professionalDetails' },
     ]);
 
-    // Send notification to patient and doctor
-    await notificationService.notifyAppointmentCreated(appointment);
+    // Keep booking successful even if downstream notification channels fail.
+    try {
+      await notificationService.notifyAppointmentCreated(appointment);
+    } catch (notificationError) {
+      console.error(
+        'Appointment notification dispatch failed:',
+        notificationError?.message || notificationError
+      );
+    }
 
     return appointment;
   }
@@ -190,6 +220,7 @@ class AppointmentService {
     const appointments = await Appointment.find(query)
       .populate('patientId', 'name email phone profileImageUrl address dateOfBirth gender bloodGroup allergies medicalHistory')
       .populate('doctorId', 'name email professionalDetails profileImageUrl')
+      .populate('followUpOf', 'dateTime status reason')
       .sort({ dateTime: -1 });
 
     return appointments;
@@ -206,6 +237,7 @@ class AppointmentService {
     const appointment = await Appointment.findById(appointmentId)
       .populate('patientId', 'name email phone')
       .populate('doctorId', 'name email professionalDetails');
+      
 
     if (!appointment) {
       throw { statusCode: 404, message: MESSAGES.APPOINTMENT.NOT_FOUND };
@@ -425,6 +457,79 @@ class AppointmentService {
 
     // Send notification to patient
     await notificationService.notifyAppointmentCompleted(appointment);
+
+    return appointment;
+  }
+
+  /**
+   * Reschedule appointment (Doctor only)
+   * @param {string} appointmentId - Appointment ID
+   * @param {string} userId - Doctor user ID
+   * @param {Object} updateData - New date/time and optional reason
+   * @returns {Object} Updated appointment
+   */
+  async rescheduleAppointmentByDoctor(appointmentId, userId, updateData) {
+    const appointment = await Appointment.findById(appointmentId);
+
+    if (!appointment) {
+      throw { statusCode: 404, message: MESSAGES.APPOINTMENT.NOT_FOUND };
+    }
+
+    if (appointment.doctorId.toString() !== userId) {
+      throw { statusCode: 403, message: MESSAGES.APPOINTMENT.DOCTOR_ACCESS_DENIED };
+    }
+
+    if (!['pending', 'confirmed', 'approved'].includes(appointment.status)) {
+      throw { statusCode: 400, message: MESSAGES.APPOINTMENT.CANNOT_MODIFY };
+    }
+
+    const newDateTime = new Date(updateData.dateTime);
+    if (Number.isNaN(newDateTime.getTime())) {
+      throw { statusCode: 400, message: MESSAGES.APPOINTMENT.DATETIME_REQUIRED };
+    }
+
+    if (newDateTime <= new Date()) {
+      throw { statusCode: 400, message: MESSAGES.APPOINTMENT.PAST_DATE };
+    }
+
+    await availabilityService.ensureSlotIsAvailable(appointment.doctorId, newDateTime);
+
+    const existingAppointment = await Appointment.findOne({
+      _id: { $ne: appointmentId },
+      doctorId: appointment.doctorId,
+      dateTime: newDateTime,
+      status: { $in: ['pending', 'confirmed', 'approved'] },
+    });
+
+    if (existingAppointment) {
+      throw { statusCode: 409, message: MESSAGES.APPOINTMENT.ALREADY_BOOKED };
+    }
+
+    const previousDateTime = appointment.dateTime;
+
+    appointment.dateTime = newDateTime;
+    appointment.status = 'confirmed';
+    if (updateData.reason) {
+      const reasonNote = `Doctor reschedule reason: ${updateData.reason}`;
+      appointment.notes = appointment.notes ? `${appointment.notes}\n${reasonNote}` : reasonNote;
+    }
+    if (updateData.notes) {
+      const detailsNote = `Doctor reschedule notes: ${updateData.notes}`;
+      appointment.notes = appointment.notes ? `${appointment.notes}\n${detailsNote}` : detailsNote;
+    }
+
+    await appointment.save();
+    await appointment.populate([
+      { path: 'patientId', select: 'name email phone' },
+      { path: 'doctorId', select: 'name email professionalDetails' },
+    ]);
+
+    await notificationService.notifyAppointmentRescheduled(
+      appointment,
+      previousDateTime,
+      userId,
+      updateData.reason || ''
+    );
 
     return appointment;
   }

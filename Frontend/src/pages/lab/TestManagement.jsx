@@ -8,10 +8,14 @@ import DoctorInstructionsCard from '../../components/lab/DoctorInstructionsCard'
 import ReportUploadPanel from '../../components/lab/ReportUploadPanel';
 import UploadHistoryCard from '../../components/lab/UploadHistoryCard';
 import TestStatusBadge from '../../components/lab/TestStatusBadge';
+import { useToast } from '../../components/common/feedback/ToastProvider';
+import { useModal } from '../../components/common/feedback/ModalProvider';
 import labService from '../../services/labService';
 import styles from './TestManagement.module.css';
 
 const TestManagement = () => {
+  const { showToast } = useToast();
+  const { showConfirm } = useModal();
   const { id } = useParams();
   const navigate = useNavigate();
   const [test, setTest] = useState(null);
@@ -40,7 +44,15 @@ const TestManagement = () => {
 
   const handleStatusUpdate = async (nextStatus, notes) => {
     if (!test) return;
-    if (!window.confirm(`Confirm status update to "${nextStatus.replace('_', ' ')}"?`)) return;
+    const { confirmed } = await showConfirm({
+      title: 'Confirm status update?',
+      message: `Update test status to "${nextStatus.replace('_', ' ')}"?`,
+      confirmText: 'Update status',
+      cancelText: 'Cancel',
+      confirmVariant: 'primary',
+    });
+    if (!confirmed) return;
+
     setActionLoading(true);
     setError('');
     setSuccess('');
@@ -48,9 +60,19 @@ const TestManagement = () => {
       const response = await labService.updateTestStatus(test._id, nextStatus, notes);
       setTest(response.data?.test || test);
       setSuccess('Status updated successfully.');
+      showToast({
+        type: 'success',
+        title: 'Status updated',
+        message: `Test marked as ${nextStatus.replace('_', ' ')}.`,
+      });
     } catch (err) {
       console.error('Status update error:', err);
       setError(err.response?.data?.message || 'Failed to update status.');
+      showToast({
+        type: 'error',
+        title: 'Update failed',
+        message: err.response?.data?.message || 'Failed to update status.',
+      });
     } finally {
       setActionLoading(false);
     }

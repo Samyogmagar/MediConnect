@@ -9,12 +9,15 @@ import {
   Bell,
   Settings,
   LogOut,
+  User,
   ChevronLeft,
   ChevronRight,
   Heart,
 } from 'lucide-react';
 import useAuth from '../../hooks/useAuth';
+import useSidebarResize from '../../hooks/useSidebarResize';
 import notificationService from '../../services/notificationService';
+import NotificationDropdown from '../common/NotificationDropdown';
 import styles from './LabLayout.module.css';
 
 const LabLayout = ({ children }) => {
@@ -23,11 +26,16 @@ const LabLayout = ({ children }) => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const { sidebarWidth, onResizeHandleMouseDown } = useSidebarResize({
+    minWidth: 220,
+    maxWidth: 340,
+    defaultWidth: 240,
+  });
 
   const fetchUnreadCount = async () => {
     try {
       const res = await notificationService.getUnreadCount();
-      setUnreadCount(res.data?.count ?? 0);
+      setUnreadCount(res.data?.count ?? res.data?.unreadCount ?? 0);
     } catch (err) {
       console.error('Error fetching unread count:', err);
     }
@@ -43,17 +51,29 @@ const LabLayout = ({ children }) => {
     navigate('/login');
   };
 
-  const navLinks = [
-    { to: '/lab/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-    { to: '/lab/test-requests', icon: FileText, label: 'Test Requests' },
-    { to: '/lab/assigned-tests', icon: ClipboardList, label: 'Assigned Tests' },
-    { to: '/lab/upload-reports', icon: Upload, label: 'Upload Reports' },
-    { to: '/lab/completed-tests', icon: CheckCircle2, label: 'Reports' },
-    { to: '/lab/notifications', icon: Bell, label: 'Notifications', badge: unreadCount },
+  const navSections = [
+    {
+      title: 'Workflow',
+      links: [
+        { to: '/lab/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+        { to: '/lab/test-requests', icon: FileText, label: 'Test Requests' },
+        { to: '/lab/assigned-tests', icon: ClipboardList, label: 'Assigned Tests' },
+        { to: '/lab/upload-reports', icon: Upload, label: 'Upload Reports' },
+        { to: '/lab/completed-tests', icon: CheckCircle2, label: 'Reports' },
+      ],
+    },
+    {
+      title: 'Account',
+      links: [
+        { to: '/lab/profile', icon: User, label: 'Profile' },
+        { to: '/lab/notifications', icon: Bell, label: 'Notifications', badge: unreadCount },
+        { to: '/lab/settings', icon: Settings, label: 'Settings' },
+      ],
+    },
   ];
 
   return (
-    <div className={styles.layout}>
+    <div className={styles.layout} style={{ '--sidebar-width': `${sidebarWidth}px` }}>
       {/* Sidebar */}
       <aside className={`${styles.sidebar} ${sidebarCollapsed ? styles.collapsed : ''}`}>
         <div className={styles.sidebarHeader}>
@@ -65,35 +85,32 @@ const LabLayout = ({ children }) => {
         </div>
 
         <nav className={styles.nav}>
-          {navLinks.map((link) => (
-            <NavLink
-              key={link.to}
-              to={link.to}
-              className={({ isActive }) =>
-                `${styles.navLink} ${isActive ? styles.active : ''}`
-              }
-              title={sidebarCollapsed ? link.label : ''}
-            >
-              <link.icon size={20} />
-              {!sidebarCollapsed && <span>{link.label}</span>}
-              {link.badge > 0 && (
-                <span className={styles.navBadge}>{link.badge}</span>
-              )}
-            </NavLink>
+          {navSections.map((section) => (
+            <div className={styles.navSection} key={section.title}>
+              {!sidebarCollapsed && <p className={styles.navSectionTitle}>{section.title}</p>}
+              <div className={styles.navSectionList}>
+                {section.links.map((link) => (
+                  <NavLink
+                    key={link.to}
+                    to={link.to}
+                    className={({ isActive }) =>
+                      `${styles.navLink} ${isActive ? styles.active : ''}`
+                    }
+                    title={sidebarCollapsed ? link.label : ''}
+                  >
+                    <link.icon size={20} />
+                    {!sidebarCollapsed && <span>{link.label}</span>}
+                    {link.badge > 0 && (
+                      <span className={styles.navBadge}>{link.badge}</span>
+                    )}
+                  </NavLink>
+                ))}
+              </div>
+            </div>
           ))}
         </nav>
 
         <div className={styles.sidebarFooter}>
-          <NavLink
-            to="/lab/settings"
-            className={({ isActive }) =>
-              `${styles.navLink} ${isActive ? styles.active : ''}`
-            }
-            title="Settings"
-          >
-            <Settings size={20} />
-            {!sidebarCollapsed && <span>Settings</span>}
-          </NavLink>
           <button
             className={`${styles.navLink} ${styles.logoutBtn}`}
             onClick={handleLogout}
@@ -103,6 +120,16 @@ const LabLayout = ({ children }) => {
             {!sidebarCollapsed && <span>Logout</span>}
           </button>
         </div>
+
+        {!sidebarCollapsed && (
+          <div
+            className={styles.resizeHandle}
+            onMouseDown={onResizeHandleMouseDown}
+            role="separator"
+            aria-orientation="vertical"
+            aria-label="Resize sidebar"
+          />
+        )}
 
         <button
           className={styles.collapseBtn}
@@ -124,10 +151,11 @@ const LabLayout = ({ children }) => {
             )}
           </div>
           <div className={styles.navbarRight}>
-            <NavLink to="/lab/notifications" className={styles.notifBtn} title="Notifications">
-              <Bell size={20} />
-              {unreadCount > 0 && <span className={styles.badge}>{unreadCount}</span>}
-            </NavLink>
+            <NotificationDropdown
+              role="lab"
+              unreadCount={unreadCount}
+              onUnreadCountChange={setUnreadCount}
+            />
 
             <div className={styles.userMenu}>
               <button
@@ -149,6 +177,9 @@ const LabLayout = ({ children }) => {
 
               {showUserMenu && (
                 <div className={styles.dropdown}>
+                  <NavLink to="/lab/profile" className={styles.dropdownItem} onClick={() => setShowUserMenu(false)}>
+                    <User size={16} /> Profile
+                  </NavLink>
                   <NavLink to="/lab/settings" className={styles.dropdownItem} onClick={() => setShowUserMenu(false)}>
                     <Settings size={16} /> Settings
                   </NavLink>

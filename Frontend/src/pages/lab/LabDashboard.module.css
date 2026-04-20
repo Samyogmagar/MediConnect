@@ -1,4 +1,4 @@
-.page {
+﻿.page {
   max-width: 1200px;
   margin: 0 auto;
 }
@@ -40,7 +40,7 @@
 .dateValue {
   font-size: 0.9rem;
   font-weight: 600;
-  color: #0f766e;
+  color: #2563eb;
 }
 
 .loading {
@@ -342,7 +342,7 @@
 
 .quickIconTeal {
   background: #f0fdfa;
-  color: #14b8a6;
+  color: #3b82f6;
 }
 
 .quickIconGreen {
@@ -403,3 +403,4 @@
     padding: 0.625rem 0.625rem;
   }
 }
+
