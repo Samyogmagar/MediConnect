@@ -34,28 +34,34 @@ const upload = multer({ storage: multer.memoryStorage() });
 // ==================== MIDDLEWARE ====================
 
 // CORS configuration
-const devOrigins = [
-  'http://localhost:3000',
-  'http://localhost:5173',
-  'http://localhost:5174',
-  'http://localhost:5175',
-];
-const allowedOrigins = new Set([
-  env.FRONTEND_URL,
-  ...devOrigins,
-].filter(Boolean));
+// const devOrigins = [
+//   'http://localhost:3000',
+//   'http://localhost:5173',
+//   'http://localhost:5174',
+//   'http://localhost:5175',
+//   'https://mediconnect-h298.onrender.com'
+// ];
+// const allowedOrigins = new Set([
+//   env.FRONTEND_URL,
+//   ...devOrigins,
+// ].filter(Boolean));
 
+// app.use(cors({
+//   origin: (origin, callback) => {
+//     if (!origin) return callback(null, true);
+//     if (allowedOrigins.has(origin)) return callback(null, true);
+//     if (env.NODE_ENV !== 'production' && origin.startsWith('http://localhost:')) {
+//       return callback(null, true);
+//     }
+//     return callback(new Error('Not allowed by CORS'));
+//   },
+//   credentials: true,
+// }));
 app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.has(origin)) return callback(null, true);
-    if (env.NODE_ENV !== 'production' && origin.startsWith('http://localhost:')) {
-      return callback(null, true);
-    }
-    return callback(new Error('Not allowed by CORS'));
-  },
+  origin: true,
   credentials: true,
 }));
+
 
 // Request logging (development only)
 if (env.NODE_ENV === 'development') {
